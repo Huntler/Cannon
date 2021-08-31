@@ -38,8 +38,9 @@ class Game:
                     quit()
 
                 # TODO: give clicked index pair
-                # if self._callbacks[event.type] is not None:
-                #     self._callbacks[event.type]()
+                if event.type in self._callbacks.keys():
+                    for func in self._callbacks[event.type]:
+                        func((0, 0))
 
             # draw the board
             Board.draw(self._screen, self._width, self._height, self._x_border, self._y_border, self._scaling)
@@ -75,7 +76,7 @@ class Game:
         return x * self._scaling + self._x_border + self._scaling / 2, self._height - y * self._scaling + self._y_border - self._scaling / 2
     
     def register_callback(self, event_type, func) -> None:
-        if self._callbacks[event_type] is None:
+        if event_type not in self._callbacks.keys():
             self._callbacks[event_type] = []
 
         self._callbacks[event_type].append(func)

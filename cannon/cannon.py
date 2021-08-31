@@ -15,6 +15,10 @@ class CannonGame:
 
         self._active_player = CannonGame.LIGHT
     
+    def possible_moves(self, pos_selected_soldier) -> Dict:
+        print(f"Hello World from Soldier {pos_selected_soldier}!")
+        pass
+    
     def get_state(self) -> Dict:
         # TODO: add the current player playing
         # TODO: add the town

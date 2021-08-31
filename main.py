@@ -1,3 +1,5 @@
+from pygame.constants import MOUSEBUTTONUP
+
 from game import Game
 from cannon.cannon import CannonGame
 
@@ -9,9 +11,12 @@ game = Game(draw_size=(300, 300))
 
 # Update View
 state = cannon.get_state()
-
-#state[0][2] = (1, 5)
 game.set_board_state(state)
+
+# - if the user clicked on a Soldier, then the possible moves are 
+#   calculated and put into the state
+# - all callback methods have to return the occured state
+game.register_callback(MOUSEBUTTONUP, cannon.possible_moves)
 
 # Run the game loop
 game.game_loop()
