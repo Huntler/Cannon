@@ -17,7 +17,9 @@ class CannonGame:
     
     def possible_moves(self, pos_selected_soldier) -> Dict:
         print(f"Hello World from Soldier {pos_selected_soldier}!")
-        pass
+        state = self.get_state()
+        state["light"][2] = (1, 5)
+        return state
     
     def get_state(self) -> Dict:
         # TODO: add the current player playing
