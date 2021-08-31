@@ -14,13 +14,14 @@ class CannonGame:
         self._player_dark.init_dark()
 
         self._active_player = CannonGame.LIGHT
-    
+
     def possible_moves(self, pos_selected_soldier) -> Dict:
         print(f"Hello World from Soldier {pos_selected_soldier}!")
         state = self.get_state()
         state["light"][2] = (1, 5)
+        # TODO: change the state and give it back to the GUI
         return state
-    
+
     def get_state(self) -> Dict:
         # TODO: add the current player playing
         # TODO: add the town

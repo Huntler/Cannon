@@ -12,6 +12,10 @@ class Soldier(Sprite):
     CLICKED = py.event.custom_type()
 
     def __init__(self, surface, board_dim, border_dim, pos, type) -> None:
+        """
+        This class represents a soldier visually. Given on the position, the actual 
+        pixel position on screen is calulated. The type determines the drawn color.
+        """
         self._callbacks = dict()
 
         # set the correct type and color
@@ -32,9 +36,16 @@ class Soldier(Sprite):
         super().__init__()
 
     def active(self, val: bool) -> None:
+        """
+        Only active sprites can call the hover and click event.
+        """
         self._active = val
 
     def draw(self):
+        """
+        This method draws this sprite on the screen at the calulated position. If 
+        the sprite is active, then the hover and click events will be handled in here.
+        """
         pos = (self._x, self._y)
         size = Soldier.SIZE
 
@@ -43,25 +54,37 @@ class Soldier(Sprite):
 
             if py.mouse.get_pressed()[0] and Soldier.CLICKED in self._callbacks.keys():
                 for func in self._callbacks[Soldier.CLICKED]:
-                        self._board_state = func(Soldier.CLICKED, self)
+                    self._board_state = func(Soldier.CLICKED, self)
 
         py.draw.circle(self._surface, self._color, pos, size)
 
     def set_position(self, pos: Tuple[int, int]) -> None:
+        """
+        This method sets the new position and calculates the pixel position on screen.
+        """
         self._x_pos, self._y_pos = pos
         self._x, self._y = Soldier._to_pixel(
             (self._x_pos, self._y_pos), self._board_dim, self._border_dim)
-    
+
     def get_position(self) -> Tuple[int, int]:
+        """
+        This method returns the position for the game to work.
+        """
         return (self._x_pos, self._y_pos)
-    
+
     def callback(self, event_type, func) -> None:
+        """
+        Callbacks for events can be registered using this method.
+        """
         if event_type not in self._callbacks.keys():
             self._callbacks[event_type] = []
 
         self._callbacks[event_type].append(func)
 
     def collidepoint(self, point: Tuple[int, int]) -> bool:
+        """
+        This method checks if a given point collides with the sprite.
+        """
         _x, _y = point
 
         if _x > self._x - Soldier.SIZE and _x < self._x + Soldier.SIZE:
