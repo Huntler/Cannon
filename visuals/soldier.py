@@ -9,15 +9,16 @@ class Soldier:
     LIGHTEN = (15, 15, 15)
 
     @staticmethod
-    def draw(surface, x_pos, y_pos, color):
+    def draw(surface, x_pos, y_pos, color, active):
         x = x_pos
         y = y_pos
         size = Soldier.SIZE
 
-        if Soldier.is_hovering(x, y):
+        if active and Soldier.is_hovering(x, y):
             color = (color[0] + Soldier.LIGHTEN[0], color[1] +
                      Soldier.LIGHTEN[1], color[2] + Soldier.LIGHTEN[2])
             size *= 1.2
+
         py.draw.circle(surface, color, (x, y), size)
 
     @staticmethod

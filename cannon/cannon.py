@@ -1,7 +1,11 @@
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 
 class CannonGame:
+
+    LIGHT = 0
+    DARK = 1
+
     def __init__(self) -> None:
         self._player_light = Player()
         self._player_light.init_light()
@@ -9,11 +13,19 @@ class CannonGame:
         self._player_dark = Player()
         self._player_dark.init_dark()
 
-        print(self._player_light.get_state())
-        print(self._player_dark.get_state())
+        self._active_player = CannonGame.LIGHT
     
-    def get_state(self) -> List:
-        return [self._player_light.get_state(), self._player_dark.get_state()]
+    def get_state(self) -> Dict:
+        # TODO: add the current player playing
+        # TODO: add the town
+        state = {}
+
+        state["light"] = self._player_light.get_state()
+        state["dark"] = self._player_dark.get_state()
+
+        state["active"] = self._active_player
+
+        return state
 
 
 class CannonFigure:

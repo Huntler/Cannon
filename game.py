@@ -1,7 +1,7 @@
 from visuals.board import Board
 from visuals.soldier import Soldier
 from cannon.cannon import CannonGame
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 import pygame as py
 
 
@@ -51,21 +51,24 @@ class Game:
             # print the screens background and update
             py.display.flip()
 
-    def set_board_state(self, board_state: List) -> None:
+    def set_board_state(self, board_state: Dict) -> None:
         self._board_state = board_state
 
     def _draw_board(self):
-        light, dark = self._board_state[0], self._board_state[1]
+        light = self._board_state["light"]
+        dark = self._board_state["dark"]
 
         for pos in light:
             # draw a light soldier
             p_x, p_y = self._to_pixel(pos)
-            Soldier.draw(self._screen, p_x, p_y, Soldier.LIGHT)
+            active = CannonGame.LIGHT == self._board_state["active"]
+            Soldier.draw(self._screen, p_x, p_y, Soldier.LIGHT, active)
 
         for pos in dark:
             # draw a dark soldier
             p_x, p_y = self._to_pixel(pos)
-            Soldier.draw(self._screen, p_x, p_y, Soldier.DARK)
+            active = CannonGame.DARK == self._board_state["active"]
+            Soldier.draw(self._screen, p_x, p_y, Soldier.DARK, active)
 
     def _to_pixel(self, pos: Tuple[int, int]) -> Tuple[int, int]:
         x, y = pos
