@@ -2,5 +2,5 @@ name: CannonAI
 dependencies:
   - python=3.8
   - pip:
-       - pygame=2.0.0
+       - git+https://github.com/nelsonlove/pygame
        - numpy
