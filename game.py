@@ -1,3 +1,4 @@
+from visuals.movement import Movement
 from visuals.sprite import Sprite
 from visuals.board import Board
 from visuals.soldier import Soldier
@@ -43,9 +44,10 @@ class Game:
                        self._x_border, self._y_border)
 
             # draw the current game state
-            if "soldiers" in self._sprites.keys():
-                for sprite in self._sprites["soldiers"]:
-                    sprite.draw()
+            for name in ["soldiers", "moves"]:
+                if name in self._sprites.keys():
+                    for sprite in self._sprites[name]:
+                        sprite.draw()
 
             # print the screens background and update
             py.display.flip()
@@ -57,6 +59,7 @@ class Game:
         self._board_state = board_state
 
         self._sprites["soldiers"] = []
+        self._sprites["moves"] = []
 
         # get the initial positions
         light = self._board_state["light"]
@@ -78,6 +81,13 @@ class Game:
             s.active(CannonGame.DARK == self._board_state["active"])
             s.callback(Soldier.CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)
+        
+        if "moves" in self._board_state.keys():
+            moves = self._board_state["moves"]
+            for move in moves:
+                s = Movement(self._screen, board, border, move)
+                self._sprites["moves"].append(s)
+
 
     def _sprite_clicked(self, event_type, sprite: Sprite) -> None:
         """
@@ -86,7 +96,8 @@ class Game:
         """
         if event_type in self._callbacks.keys():
             for func in self._callbacks[event_type]:
-                func(sprite.get_position())
+                state = func(sprite.get_position())
+                self.set_board_state(state)
 
     def register_callback(self, event_type, func) -> None:
         """

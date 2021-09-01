@@ -1,8 +1,9 @@
-from visuals.soldier import Soldier
 import pygame as py
 
 
 class Board:
+
+    GRID_SIZE = 10
 
     FOREGROUND = (255, 235, 200)
     BACKGROUND = (20, 15, 0)
@@ -23,7 +24,7 @@ class Board:
 
     @staticmethod
     def draw(surface, width, height, x_border, y_border):
-        scaling = width / Soldier.SIZE
+        scaling = width / Board.GRID_SIZE
         py.draw.rect(surface, Board.BACKGROUND,
                      (0, 0, width + 2 * x_border, height + 2 * y_border))
         py.draw.rect(surface, Board.FOREGROUND, (x_border + scaling / 2,

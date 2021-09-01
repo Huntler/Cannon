@@ -1,20 +1,19 @@
-from visuals.board import Board
+from typing import Tuple
 from visuals.sprite import Sprite, to_pixel
 from cannon.cannon import CannonGame
-from typing import Tuple
+from visuals.soldier import Soldier
 import pygame as py
 
 
-SIZE = Board.GRID_SIZE
-DARK = (100, 150, 0)
-LIGHT = (240, 50, 0)
+SIZE = 8
+COLOR = (255, 255, 255)
 
 
-class Soldier(Sprite):
-
+class Movement(Sprite):
+    
     CLICKED = py.event.custom_type()
 
-    def __init__(self, surface, board_dim, border_dim, pos, type) -> None:
+    def __init__(self, surface, board_dim, border_dim, pos) -> None:
         """
         This class represents a soldier visually. Given on the position, the actual 
         pixel position on screen is calulated. The type determines the drawn color.
@@ -22,27 +21,16 @@ class Soldier(Sprite):
         self._callbacks = dict()
 
         # set the correct type and color
-        self._type = type
-        if CannonGame.LIGHT == self._type:
-            self._color = LIGHT
-        elif CannonGame.DARK == self._type:
-            self._color = DARK
+        self._color = COLOR
 
         # set position
         self._x_pos, self._y_pos = pos
         self._board_dim = board_dim
         self._border_dim = border_dim
-        self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim)
+        self._x, self._y = to_pixel((self._x_pos, self._y_pos), self._board_dim, self._border_dim)
 
         self._surface = surface
         super().__init__()
-
-    def active(self, val: bool) -> None:
-        """
-        Only active sprites can call the hover and click event.
-        """
-        self._active = val
 
     def draw(self):
         """
@@ -54,7 +42,7 @@ class Soldier(Sprite):
         pos = (self._x, self._y)
         size = SIZE
 
-        if self._active and self.collidepoint(py.mouse.get_pos()):
+        if self.collidepoint(py.mouse.get_pos()):
             size *= 1.2
 
         py.draw.circle(self._surface, self._color, pos, size)
@@ -96,10 +84,13 @@ class Soldier(Sprite):
 
     def _clicked(self) -> None:
         """
-        This method executes, if the soldier was clicked. A click is defined as button down 
-        and up, while hovering the sprite.
+        This method executes, if the movement point was clicked. A click is defined 
+        as button down and up, while hovering the sprite.
         """
-        # if the soldier is active and a callback for the click event was defined, then execute it
-        if self._active and Soldier.CLICKED in self._callbacks.keys():
-            for func in self._callbacks[Soldier.CLICKED]:
-                self._board_state = func(Soldier.CLICKED, self)
+        # if the movement point is active and a callback for the click event was defined, t
+        # hen execute it
+        if Movement.CLICKED in self._callbacks.keys():
+            for func in self._callbacks[Movement.CLICKED]:
+                self._board_state = func(Movement.CLICKED, self)
+
+

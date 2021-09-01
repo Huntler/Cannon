@@ -13,14 +13,43 @@ class CannonGame:
         self._player_dark = Player()
         self._player_dark.init_dark()
 
-        self._active_player = CannonGame.LIGHT
+        self._active_player = CannonGame.DARK
 
-    def possible_moves(self, pos_selected_soldier) -> Dict:
-        print(f"Hello World from Soldier {pos_selected_soldier}!")
+    def possible_moves(self, pos_selected_soldier: Tuple[int, int]) -> Dict:
+        """
+        This method collects all possible moves for the given soldier and adds 
+        the list of moves to the game state.
+        """
         state = self.get_state()
-        state["light"][2] = (1, 5)
-        # TODO: change the state and give it back to the GUI
+
+        self._possible_movement(pos_selected_soldier, state)
+
         return state
+
+    def _possible_movement(self, pos_selected_soldier, state):
+        # set the game direction, so in which direction the soldiers are moving
+        dir = -1 if self._active_player == CannonGame.LIGHT else +1
+        moves = []
+
+        # the basic forward move
+        positions = []
+        positions.append((pos_selected_soldier[0] - 1, pos_selected_soldier[1] + dir))
+        positions.append((pos_selected_soldier[0], pos_selected_soldier[1] + dir))
+        positions.append((pos_selected_soldier[0] + 1, pos_selected_soldier[1] + dir))
+
+        for pos in positions:
+            x, y = pos
+            # check x for out of bounds
+            if x < 0 or 9 < x or y < 0 or 9 < y:
+                continue
+
+            # check if there is an object
+            if pos in state["light"] or pos in state["dark"]:
+                continue
+
+            moves.append(pos)
+
+        state["moves"] = moves
 
     def get_state(self) -> Dict:
         # TODO: add the current player playing
