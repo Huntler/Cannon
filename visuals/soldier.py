@@ -2,7 +2,6 @@ from visuals.sprite import Sprite
 from cannon.cannon import CannonGame
 from typing import Tuple
 import pygame as py
-from pygame.constants import MOUSEBUTTONUP
 
 
 class Soldier(Sprite):
@@ -46,15 +45,13 @@ class Soldier(Sprite):
         This method draws this sprite on the screen at the calulated position. If 
         the sprite is active, then the hover and click events will be handled in here.
         """
+        super().draw()
+
         pos = (self._x, self._y)
         size = Soldier.SIZE
 
         if self._active and self.collidepoint(py.mouse.get_pos()):
             size *= 1.2
-
-            if py.mouse.get_pressed()[0] and Soldier.CLICKED in self._callbacks.keys():
-                for func in self._callbacks[Soldier.CLICKED]:
-                    self._board_state = func(Soldier.CLICKED, self)
 
         py.draw.circle(self._surface, self._color, pos, size)
 
@@ -92,6 +89,16 @@ class Soldier(Sprite):
                 return True
 
         return False
+
+    def _clicked(self) -> None:
+        """
+        This method executes, if the soldier was clicked. A click is defined as button down 
+        and up, while hovering the sprite.
+        """
+        # if the soldier is active and a callback for the click event was defined, then execute it
+        if self._active and Soldier.CLICKED in self._callbacks.keys():
+            for func in self._callbacks[Soldier.CLICKED]:
+                self._board_state = func(Soldier.CLICKED, self)
 
     @staticmethod
     def _to_pixel(pos: Tuple[int, int], board_dim: Tuple[int, int], border_dim: Tuple[int, int]) -> Tuple[int, int]:

@@ -1,7 +1,11 @@
 from typing import Tuple
+import pygame as py
 
 
 class Sprite:
+    def __init__(self) -> None:
+        self._button_down = False
+
     def set_position(self, pos: Tuple[int, int]) -> None:
         raise NotImplemented
 
@@ -9,7 +13,22 @@ class Sprite:
         raise NotImplemented
 
     def draw(self) -> None:
-        raise NotImplemented
+        mouse_pos = py.mouse.get_pos()
+        mouse_buttons = py.mouse.get_pressed()
+
+        if self.collidepoint(mouse_pos):
+            if mouse_buttons[0]:
+                self._button_down = True
+            
+            if self._button_down and not mouse_buttons[0]:
+                self._clicked()
+                self._button_down = False
+        
+        elif self._button_down:
+            self._button_down = False
 
     def collidepoint(self, point: Tuple[int, int]) -> bool:
+        raise NotImplemented
+
+    def _clicked(self) -> None:
         raise NotImplemented

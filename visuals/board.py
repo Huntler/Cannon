@@ -22,7 +22,8 @@ class Board:
         Board.FONT = py.font.SysFont('Arial', Board.FONT_SIZE)
 
     @staticmethod
-    def draw(surface, width, height, x_border, y_border, scaling):
+    def draw(surface, width, height, x_border, y_border):
+        scaling = width / Soldier.SIZE
         py.draw.rect(surface, Board.BACKGROUND,
                      (0, 0, width + 2 * x_border, height + 2 * y_border))
         py.draw.rect(surface, Board.FOREGROUND, (x_border + scaling / 2,

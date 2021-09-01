@@ -40,7 +40,7 @@ class Game:
 
             # draw the board
             Board.draw(self._screen, self._width, self._height,
-                       self._x_border, self._y_border, self._scaling)
+                       self._x_border, self._y_border)
 
             # draw the current game state
             if "soldiers" in self._sprites.keys():
