@@ -18,8 +18,10 @@ class RandomAI:
         while moves == [] and len(soldiers) != 0:
 
             soldier = random.choice(soldiers)
-            soldiers.remove(soldier)
             moves = self._cannon.possible_moves(self.get_player_type(), soldier.pos())["moves"]
+
+            if moves == []:
+                soldiers.remove(soldier)
         
         if len(soldiers) == 0:
             return
