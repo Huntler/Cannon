@@ -1,2 +1,4 @@
 __pycache__/*
 */__pycache__/*
+stupid_engine/*/__pycache__/*
+stupid_engine/*/*/__pycache__/*
