@@ -1,6 +1,6 @@
 # Setup Model
 from typing import Tuple
-from stupid_engine.cannon.game import Game
+from stupid_engine.cannon.visuals.game import Game
 from stupid_engine.cannon.entities.cannon import CannonGame
 
 

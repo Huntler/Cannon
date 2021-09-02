@@ -1,5 +1,5 @@
 from stupid_engine.backend.visuals.font import Font
-from stupid_engine.cannon.game_board import Board
+from stupid_engine.cannon.visuals.game_board import Board
 from stupid_engine.cannon.entities.cannon import CannonGame
 from stupid_engine.backend.visuals.figure import Figure
 from stupid_engine.backend.visuals.movement import Movement
