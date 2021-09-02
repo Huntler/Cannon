@@ -1,32 +1,28 @@
-from visuals.board import Board
-from visuals.sprite import Sprite, to_pixel
-from cannon.cannon import CannonGame
+from stupid_engine.cannon.entities.cannon import CannonGame
+from stupid_engine.backend.visuals.sprite import Sprite, to_pixel
+from stupid_engine.backend.visuals.board import Board
 from typing import Tuple
 import pygame as py
 
 
 SIZE = Board.GRID_SIZE
-DARK = (100, 150, 0)
-LIGHT = (240, 50, 0)
 
 
 class Soldier(Sprite):
 
+    DARK = (100, 150, 0)
+    LIGHT = (240, 50, 0)
     CLICKED = py.event.custom_type()
 
-    def __init__(self, surface, board_dim, border_dim, pos, type) -> None:
+    def __init__(self, surface, board_dim, border_dim, pos, color) -> None:
         """
         This class represents a soldier visually. Given on the position, the actual 
         pixel position on screen is calulated. The type determines the drawn color.
         """
         self._callbacks = dict()
 
-        # set the correct type and color
-        self._type = type
-        if CannonGame.LIGHT == self._type:
-            self._color = LIGHT
-        elif CannonGame.DARK == self._type:
-            self._color = DARK
+        # set color
+        self._color = color
 
         # set position
         self._x_pos, self._y_pos = pos

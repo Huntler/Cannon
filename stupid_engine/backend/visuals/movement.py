@@ -1,7 +1,5 @@
+from stupid_engine.backend.visuals.sprite import Sprite, to_pixel
 from typing import Tuple
-from visuals.sprite import Sprite, to_pixel
-from cannon.cannon import CannonGame
-from visuals.soldier import Soldier
 import pygame as py
 
 

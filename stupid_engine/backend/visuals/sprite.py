@@ -1,5 +1,5 @@
+from stupid_engine.backend.visuals.board import Board
 from typing import Tuple
-from visuals.board import Board
 import pygame as py
 
 

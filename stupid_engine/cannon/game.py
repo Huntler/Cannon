@@ -1,8 +1,8 @@
-from visuals.movement import Movement
-from visuals.sprite import Sprite
-from visuals.board import Board
-from visuals.soldier import Soldier
-from cannon.cannon import CannonGame
+from stupid_engine.cannon.entities.cannon import CannonGame
+from stupid_engine.backend.visuals.soldier import Soldier
+from stupid_engine.backend.visuals.movement import Movement
+from stupid_engine.backend.visuals.sprite import Sprite
+from stupid_engine.backend.visuals.board import Board
 from typing import Dict, List, Tuple
 import pygame as py
 
@@ -80,13 +80,13 @@ class Game:
         # for each position of each soldier, create the object and add
         # it to the sprites
         for pos in light:
-            s = Soldier(self._screen, board, border, pos, CannonGame.LIGHT)
+            s = Soldier(self._screen, board, border, pos, Soldier.LIGHT)
             s.active(CannonGame.LIGHT == self._board_state["active"])
             s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)
 
         for pos in dark:
-            s = Soldier(self._screen, board, border, pos, CannonGame.DARK)
+            s = Soldier(self._screen, board, border, pos, Soldier.DARK)
             s.active(CannonGame.DARK == self._board_state["active"])
             s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)
