@@ -1,12 +1,13 @@
-from stupid_engine.backend.visuals.board import Board
 from typing import Tuple
 import pygame as py
+
+GRID_SIZE = 10
 
 
 def to_pixel(pos: Tuple[int, int], board_dim: Tuple[int, int], border_dim: Tuple[int, int]) -> Tuple[int, int]:
     w, h = board_dim
     xb, yb = border_dim
-    sc = w / Board.GRID_SIZE
+    sc = w / GRID_SIZE
     x, y = pos
     return x * sc + xb + sc / 2, h - y * sc + yb - sc / 2
 

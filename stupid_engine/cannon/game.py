@@ -1,15 +1,16 @@
+from stupid_engine.backend.visuals.font import Font
+from stupid_engine.cannon.game_board import Board
 from stupid_engine.cannon.entities.cannon import CannonGame
-from stupid_engine.backend.visuals.soldier import Soldier
+from stupid_engine.backend.visuals.figure import Figure
 from stupid_engine.backend.visuals.movement import Movement
 from stupid_engine.backend.visuals.sprite import Sprite
-from stupid_engine.backend.visuals.board import Board
 from typing import Dict, List, Tuple
 import pygame as py
 
 
 class Game:
 
-    SOLDIER_CLICKED = Soldier.CLICKED
+    SOLDIER_CLICKED = Figure.CLICKED
     MOVE_TO_CLICKED = Movement.CLICKED
 
     EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED]
@@ -19,7 +20,6 @@ class Game:
         This class represents the game GUI and handles the user events.
         """
         py.init()
-        Board.init_font()
 
         self._width, self._height = draw_size
         self._x_border, self._y_border = border_size
@@ -27,18 +27,21 @@ class Game:
                              2 * self._y_border + self._height)
 
         self._screen = py.display.set_mode(self._window_size)
+        
         self._board_state = None
-        self._sprites = dict()
+        self._board = Board(self._screen, draw_size + border_size, Font.ARIAL)
 
+        self._sprites = dict()
         self._callbacks = dict()
 
-        self._running = True
+        self._running = False
 
     def game_loop(self):
         """
         This method contains the GUI loop. Here the events will be checked 
         and screen elements drawn.
         """
+        self._running = True
         while self._running:
             for event in py.event.get():
                 if event.type == py.QUIT:
@@ -46,8 +49,7 @@ class Game:
                     quit()
 
             # draw the board
-            Board.draw(self._screen, self._width, self._height,
-                       self._x_border, self._y_border)
+            self._board.draw()
 
             # draw the current game state
             for name in ["soldiers", "moves"]:
@@ -80,13 +82,13 @@ class Game:
         # for each position of each soldier, create the object and add
         # it to the sprites
         for pos in light:
-            s = Soldier(self._screen, board, border, pos, Soldier.LIGHT)
+            s = Figure(self._screen, board, border, pos, Figure.LIGHT)
             s.active(CannonGame.LIGHT == self._board_state["active"])
             s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)
 
         for pos in dark:
-            s = Soldier(self._screen, board, border, pos, Soldier.DARK)
+            s = Figure(self._screen, board, border, pos, Figure.DARK)
             s.active(CannonGame.DARK == self._board_state["active"])
             s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)

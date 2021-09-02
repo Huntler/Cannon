@@ -1,14 +1,11 @@
-from stupid_engine.cannon.entities.cannon import CannonGame
 from stupid_engine.backend.visuals.sprite import Sprite, to_pixel
-from stupid_engine.backend.visuals.board import Board
 from typing import Tuple
 import pygame as py
 
 
-SIZE = Board.GRID_SIZE
+SIZE = 10
 
-
-class Soldier(Sprite):
+class Figure(Sprite):
 
     DARK = (100, 150, 0)
     LIGHT = (240, 50, 0)
@@ -96,6 +93,6 @@ class Soldier(Sprite):
         and up, while hovering the sprite.
         """
         # if the soldier is active and a callback for the click event was defined, then execute it
-        if self._active and Soldier.CLICKED in self._callbacks.keys():
-            for func in self._callbacks[Soldier.CLICKED]:
-                self._board_state = func(Soldier.CLICKED, self)
+        if self._active and Figure.CLICKED in self._callbacks.keys():
+            for func in self._callbacks[Figure.CLICKED]:
+                self._board_state = func(Figure.CLICKED, self)
