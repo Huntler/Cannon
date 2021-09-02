@@ -1,3 +1,4 @@
+from stupid_engine.cannon.entities.player import PlayerType
 from stupid_engine.backend.visuals.font import Font
 from stupid_engine.cannon.visuals.game_board import Board
 from stupid_engine.cannon.entities.cannon import CannonGame
@@ -27,7 +28,7 @@ class Game:
                              2 * self._y_border + self._height)
 
         self._screen = py.display.set_mode(self._window_size)
-        
+
         self._board_state = None
         self._board = Board(self._screen, draw_size + border_size, Font.ARIAL)
 
@@ -60,16 +61,16 @@ class Game:
             # print the screens background and update
             py.display.flip()
 
-    def set_board_state(self, board_state: Dict) -> None:
+    def set_board_state(self, board_state: Dict, active_player: PlayerType) -> None:
         """
         This method sets the board initially and creates all basic sprites like soldiers.
         """
         self._board_state = board_state
 
-        self._set_soldiers()
-        self._set_moves()        
+        self._set_soldiers(active_player=active_player)
+        self._set_moves()
 
-    def _set_soldiers(self):
+    def _set_soldiers(self, active_player: PlayerType):
         self._sprites["soldiers"] = []
 
         # get the initial positions
@@ -83,13 +84,13 @@ class Game:
         # it to the sprites
         for pos in light:
             s = Figure(self._screen, board, border, pos, Figure.LIGHT)
-            s.active(CannonGame.LIGHT == self._board_state["active"])
+            s.active(active_player == PlayerType.LIGHT)
             s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)
 
         for pos in dark:
             s = Figure(self._screen, board, border, pos, Figure.DARK)
-            s.active(CannonGame.DARK == self._board_state["active"])
+            s.active(active_player == PlayerType.DARK)
             s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)
 
@@ -110,13 +111,12 @@ class Game:
         This is a callback function which is executed, if a registered event run. The sprite 
         that was used in the event context is given.
         """
-        if  event_type not in self._callbacks.keys():
+        if event_type not in self._callbacks.keys():
             return
 
         if event_type in Game.EVENTS:
             for func in self._callbacks[event_type]:
-                state = func(sprite.get_position())
-                self.set_board_state(state)
+                func(sprite.get_position())
 
     def register_callback(self, event_type, func) -> None:
         """

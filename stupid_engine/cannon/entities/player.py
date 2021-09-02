@@ -2,20 +2,27 @@ from stupid_engine.cannon.entities.figures import CannonSoldier, CannonTown
 from typing import List, Tuple
 
 
+class PlayerType:
+    LIGHT = 0
+    DARK = 1
+
+
 class Player:
-    def __init__(self) -> None:
+
+    def __init__(self, type: PlayerType) -> None:
         """
         The player is sets the Town initially and controlls the Soldiers afterwards. The 
         GameBoard has control over the players to manage who is allowd to play and who not.
         """
+        self._type = type
         self._town = None
         self._soldiers = None
+        self._selected = None
 
-    def init_light(self) -> None:
-        self._init_positions(start_pos=(1, 8), end_pos=(9, 5))
-
-    def init_dark(self) -> None:
-        self._init_positions(start_pos=(0, 3), end_pos=(8, 0))
+        if self._type == PlayerType.LIGHT:
+            self._init_positions(start_pos=(1, 8), end_pos=(9, 5))
+        elif self._type == PlayerType.DARK:
+            self._init_positions(start_pos=(0, 3), end_pos=(8, 0))
 
     def _init_positions(self, start_pos: Tuple[int, int], end_pos: Tuple[int, int]) -> None:
         """
@@ -38,13 +45,28 @@ class Player:
     def get_town_position(self) -> Tuple[int, int]:
         return self._town.pos()
     
-    def move_soldier(self, current_position, final_position) -> None:
+    def select_soldier(self, position) -> None:
         """
-        This method moves a soldier at position 'current_position' to the 'final_position'.
+        This method selects a soldier owned by this player.
         """
         for s in self._soldiers:
-            if s.pos() == current_position:
-                s.set_pos(final_position)
+            if s.pos() == position:
+                self._selected = s
+
+    def get_type(self) -> PlayerType:
+        return self._type
+
+    def move_soldier(self, position) -> None:
+        """
+        This method moves the selected soldier to a given position. Make 
+        sure, that a soldier was selected before exectuing this.
+        """
+        if not self._selected:
+            print("Tried to move a soldier, but none was selected.")
+            quit()
+            
+        self._selected.set_pos(position)
+        self._selected = None
 
     def get_state(self) -> List:
         """
