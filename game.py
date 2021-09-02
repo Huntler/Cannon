@@ -8,6 +8,12 @@ import pygame as py
 
 
 class Game:
+
+    SOLDIER_CLICKED = Soldier.CLICKED
+    MOVE_TO_CLICKED = Movement.CLICKED
+
+    EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED]
+
     def __init__(self, draw_size: Tuple[int, int] = (500, 500), border_size: Tuple[int, int] = (100, 100)) -> None:
         """
         This class represents the game GUI and handles the user events.
@@ -58,8 +64,11 @@ class Game:
         """
         self._board_state = board_state
 
+        self._set_soldiers()
+        self._set_moves()        
+
+    def _set_soldiers(self):
         self._sprites["soldiers"] = []
-        self._sprites["moves"] = []
 
         # get the initial positions
         light = self._board_state["light"]
@@ -73,28 +82,36 @@ class Game:
         for pos in light:
             s = Soldier(self._screen, board, border, pos, CannonGame.LIGHT)
             s.active(CannonGame.LIGHT == self._board_state["active"])
-            s.callback(Soldier.CLICKED, self._sprite_clicked)
+            s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)
 
         for pos in dark:
             s = Soldier(self._screen, board, border, pos, CannonGame.DARK)
             s.active(CannonGame.DARK == self._board_state["active"])
-            s.callback(Soldier.CLICKED, self._sprite_clicked)
+            s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
             self._sprites["soldiers"].append(s)
-        
+
+    def _set_moves(self):
+        self._sprites["moves"] = []
+        border = (self._x_border, self._y_border)
+        board = (self._width, self._height)
+
         if "moves" in self._board_state.keys():
             moves = self._board_state["moves"]
             for move in moves:
                 s = Movement(self._screen, board, border, move)
+                s.callback(Game.MOVE_TO_CLICKED, self._sprite_clicked)
                 self._sprites["moves"].append(s)
-
 
     def _sprite_clicked(self, event_type, sprite: Sprite) -> None:
         """
         This is a callback function which is executed, if a registered event run. The sprite 
         that was used in the event context is given.
         """
-        if event_type in self._callbacks.keys():
+        if  event_type not in self._callbacks.keys():
+            return
+
+        if event_type in Game.EVENTS:
             for func in self._callbacks[event_type]:
                 state = func(sprite.get_position())
                 self.set_board_state(state)
