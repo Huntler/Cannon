@@ -79,6 +79,14 @@ class Application:
         state = self._cannon.get_state()
         self._game.set_board_state(
             board_state=state, active_player=PlayerType.LIGHT)
+        
+        # if the ai is player light, then make the move
+        if self._ai.get_player_type() == PlayerType.LIGHT:
+            self._ai.play_turn()
+            state = self._cannon.get_state()
+            self._game.set_board_state(
+                board_state=state, active_player=self._boomer.get_type())
+
 
         # Run the game loop
         self._game.game_loop()
