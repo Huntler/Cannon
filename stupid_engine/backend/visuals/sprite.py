@@ -13,6 +13,9 @@ def to_pixel(pos: Tuple[int, int], board_dim: Tuple[int, int], border_dim: Tuple
 
 
 class Sprite:
+    
+    CLICKED = py.event.custom_type()
+
     def __init__(self) -> None:
         self._button_down = False
 
@@ -36,6 +39,15 @@ class Sprite:
 
         elif self._button_down:
             self._button_down = False
+
+    def active(self, val: bool) -> None:
+        """
+        Only active sprites can call the hover and click event.
+        """
+        self._active = val
+
+    def callback(self, event_type, func) -> None:
+        raise NotImplemented
 
     def collidepoint(self, point: Tuple[int, int]) -> bool:
         raise NotImplemented

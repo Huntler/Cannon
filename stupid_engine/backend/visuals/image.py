@@ -1,27 +1,35 @@
-from stupid_engine.backend.visuals.sprite import Sprite, to_pixel
 from typing import Tuple
+from stupid_engine.backend.visuals.sprite import Sprite
+from stupid_engine.backend.visuals.sprite import to_pixel as _to_pixel
 import pygame as py
 
 
-SIZE = 10
+def to_pixel(pos: Tuple[int, int], board_dim: Tuple[int, int], border_dim: Tuple[int, int], size: Tuple[int, int]) -> Tuple[int, int]:
+    x, y = _to_pixel(pos, board_dim, border_dim)
+    cx, cy = size
+    return x - cx / 2, y - cy / 2
 
-class Figure(Sprite):
-    def __init__(self, surface, board_dim, border_dim, pos, color) -> None:
+
+class Image(Sprite):
+    def __init__(self, surface, board_dim, border_dim, pos, img_path: str, size: Tuple[int, int]) -> None:
         """
-        This class represents a soldier visually. Given on the position, the actual 
-        pixel position on screen is calulated. The type determines the drawn color.
+        This class represents an image visually. Given on the position, the actual 
+        pixel position on screen is calulated.
         """
         self._callbacks = dict()
 
-        # set color
-        self._color = color
+        # load image
+        self._size = size
+        self._img = py.image.load(img_path)
+        w, h = self._size
+        self._img = py.transform.scale(self._img, (w, h))
 
         # set position
         self._x_pos, self._y_pos = pos
         self._board_dim = board_dim
         self._border_dim = border_dim
         self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim)
+            (self._x_pos, self._y_pos), self._board_dim, self._border_dim, self._size)
 
         self._surface = surface
         super().__init__()
@@ -34,20 +42,27 @@ class Figure(Sprite):
         super().draw()
 
         pos = (self._x, self._y)
-        size = SIZE
+        w, h = self._size
+        img = self._img
 
         if self._active and self.collidepoint(py.mouse.get_pos()):
-            size *= 1.2
+            factor = 1.2
+            _w, _h = int(w * factor), int(h * factor)
+            img = py.transform.scale(self._img, (_w, _h))
+            # get new center
+            dw, dh = _w - w, _h - h
+            pos = (self._x - dw / 2, self._y - dh / 2)
 
-        py.draw.circle(self._surface, self._color, pos, size)
 
+        self._surface.blit(img, pos)
+    
     def set_position(self, pos: Tuple[int, int]) -> None:
         """
         This method sets the new position and calculates the pixel position on screen.
         """
         self._x_pos, self._y_pos = pos
         self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim)
+            (self._x_pos, self._y_pos), self._board_dim, self._border_dim, self._size)
 
     def get_position(self) -> Tuple[int, int]:
         """
@@ -69,9 +84,10 @@ class Figure(Sprite):
         This method checks if a given point collides with the sprite.
         """
         _x, _y = point
+        sx, sy = self._size
 
-        if _x > self._x - SIZE and _x < self._x + SIZE:
-            if _y > self._y - SIZE and _y < self._y + SIZE:
+        if _x > self._x and _x < self._x + sx:
+            if _y > self._y and _y < self._y + sy:
                 return True
 
         return False

@@ -1,4 +1,5 @@
 # Setup Model
+from stupid_engine.cannon.theme import Theme
 from typing import Tuple
 from stupid_engine.cannon.visuals.game import Game
 from stupid_engine.cannon.entities.cannon import CannonGame
@@ -6,7 +7,7 @@ from stupid_engine.cannon.entities.player import Player, PlayerType
 
 
 class Application:
-    def __init__(self, window_size: Tuple[int, int] = (300, 300)):
+    def __init__(self, window_size: Tuple[int, int] = (300, 300), theme: Theme = Theme.DEFAULT):
         """
         This application handles the cannon game backend and frontend. Here
         the events and callbacks are connected, so the user can interact with 
@@ -22,7 +23,7 @@ class Application:
         self._cannon = CannonGame(self._p_light, self._p_dark)
 
         # Setup View
-        self._game = Game(draw_size=(300, 300))
+        self._game = Game(draw_size=(300, 300), theme=theme)
 
         # - if the user clicked on a Soldier, then the possible moves are
         #   calculated and put into the state

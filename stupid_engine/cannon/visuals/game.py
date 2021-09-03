@@ -1,3 +1,4 @@
+from stupid_engine.cannon.theme import Theme
 from stupid_engine.cannon.entities.player import PlayerType
 from stupid_engine.backend.visuals.font import Font
 from stupid_engine.cannon.visuals.game_board import Board
@@ -11,16 +12,18 @@ import pygame as py
 
 class Game:
 
-    SOLDIER_CLICKED = Figure.CLICKED
+    SOLDIER_CLICKED = Sprite.CLICKED
     MOVE_TO_CLICKED = Movement.CLICKED
 
     EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED]
 
-    def __init__(self, draw_size: Tuple[int, int] = (500, 500), border_size: Tuple[int, int] = (100, 100)) -> None:
+    def __init__(self, draw_size: Tuple[int, int] = (500, 500), border_size: Tuple[int, int] = (100, 100), theme: Theme = Theme.DEFAULT) -> None:
         """
         This class represents the game GUI and handles the user events.
         """
         py.init()
+
+        self._theme = Theme(theme)
 
         self._width, self._height = draw_size
         self._x_border, self._y_border = border_size
@@ -83,15 +86,24 @@ class Game:
         # for each position of each soldier, create the object and add
         # it to the sprites
         for pos in light:
-            s = Figure(self._screen, board, border, pos, Figure.LIGHT)
+            # get and configure the themed figure
+            figure = self._theme.get_soldier(PlayerType.LIGHT)
+            s = figure(surface=self._screen, board_dim=board,
+                       border_dim=border, pos=pos)
+
             s.active(active_player == PlayerType.LIGHT)
             s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
+
             self._sprites["soldiers"].append(s)
 
         for pos in dark:
-            s = Figure(self._screen, board, border, pos, Figure.DARK)
+            figure = self._theme.get_soldier(PlayerType.DARK)
+            s = figure(surface=self._screen, board_dim=board,
+                       border_dim=border, pos=pos)
+
             s.active(active_player == PlayerType.DARK)
             s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
+
             self._sprites["soldiers"].append(s)
 
     def _set_moves(self):
