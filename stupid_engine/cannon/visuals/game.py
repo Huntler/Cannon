@@ -33,7 +33,7 @@ class Game:
         self._screen = py.display.set_mode(self._window_size)
 
         self._board_state = None
-        self._board = Board(self._screen, draw_size + border_size, Font.ARIAL)
+        self._board = self._theme.get_board(self._screen, draw_size + border_size)
 
         self._sprites = dict()
         self._callbacks = dict()
