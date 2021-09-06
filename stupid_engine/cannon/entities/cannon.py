@@ -6,6 +6,20 @@ class CannonGame:
     def __init__(self, p_light: Player, p_dark: Player) -> None:
         self._p_light = p_light
         self._p_dark = p_dark
+    
+    def get_town_positions(self, turn: PlayerType) -> Dict:
+        """
+        This method gets all possible positions to place a town for the given player.
+        """
+        state = self.get_state()
+        state["towns"] = []
+
+        # get all possible positions for a town
+        y = 9 if turn == PlayerType.LIGHT else 0
+        for x in range(0, 10):
+            state["towns"].append((x, y))
+
+        return state
 
     def possible_moves(self, turn: PlayerType, pos: Tuple[int, int]) -> Dict:
         """
@@ -41,7 +55,7 @@ class CannonGame:
                 continue
 
             # check if there is an object
-            if pos in state["light"] or pos in state["dark"]:
+            if pos in state["light"]["soldiers"] or pos in state["dark"]["soldiers"]:
                 continue
 
             moves.append(pos)
@@ -49,8 +63,6 @@ class CannonGame:
         state["moves"] = moves
 
     def get_state(self) -> Dict:
-        # TODO: add the current player playing
-        # TODO: add the town
         state = {}
 
         state["light"] = self._p_light.get_state()

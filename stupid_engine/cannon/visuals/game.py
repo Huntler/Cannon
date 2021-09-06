@@ -1,21 +1,19 @@
 from stupid_engine.cannon.theme import Theme
 from stupid_engine.cannon.entities.player import PlayerType
-from stupid_engine.backend.visuals.font import Font
-from stupid_engine.cannon.visuals.game_board import Board
-from stupid_engine.cannon.entities.cannon import CannonGame
-from stupid_engine.backend.visuals.figure import Figure
 from stupid_engine.backend.visuals.movement import Movement
 from stupid_engine.backend.visuals.sprite import Sprite
+from stupid_engine.backend.visuals.block import Block
 from typing import Dict, List, Tuple
 import pygame as py
 
 
 class Game:
 
-    SOLDIER_CLICKED = Sprite.CLICKED
-    MOVE_TO_CLICKED = Movement.CLICKED
+    SOLDIER_CLICKED = py.event.custom_type()
+    MOVE_TO_CLICKED = py.event.custom_type()
+    PLACE_TOWN = py.event.custom_type()
 
-    EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED]
+    EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED, PLACE_TOWN]
 
     def __init__(self, draw_size: Tuple[int, int] = (500, 500), border_size: Tuple[int, int] = (100, 100), theme: Theme = Theme.DEFAULT) -> None:
         """
@@ -56,7 +54,7 @@ class Game:
             self._board.draw()
 
             # draw the current game state
-            for name in ["soldiers", "moves"]:
+            for name in ["soldiers", "moves", "towns"]:
                 if name in self._sprites.keys():
                     for sprite in self._sprites[name]:
                         sprite.draw()
@@ -72,13 +70,14 @@ class Game:
 
         self._set_soldiers(active_player=active_player)
         self._set_moves()
+        self._set_towns()
 
     def _set_soldiers(self, active_player: PlayerType):
         self._sprites["soldiers"] = []
 
         # get the initial positions
-        light = self._board_state["light"]
-        dark = self._board_state["dark"]
+        light = self._board_state["light"]["soldiers"]
+        dark = self._board_state["dark"]["soldiers"]
 
         border = (self._x_border, self._y_border)
         board = (self._width, self._height)
@@ -117,6 +116,35 @@ class Game:
                 s = Movement(self._screen, board, border, move)
                 s.callback(Game.MOVE_TO_CLICKED, self._sprite_clicked)
                 self._sprites["moves"].append(s)
+    
+    def _set_towns(self):
+        self._sprites["towns"] = []
+        border = (self._x_border, self._y_border)
+        board = (self._width, self._height)
+
+        # possible places for a town
+        if "towns" in self._board_state.keys():
+            towns = self._board_state["towns"]
+            for town in towns:
+                s = Movement(self._screen, board, border, town)
+                s.callback(Game.PLACE_TOWN, self._sprite_clicked)
+                self._sprites["towns"].append(s)
+        
+        # a town itself
+        light = self._board_state["light"]
+        if "town" in light.keys():
+            figure = self._theme.get_town(PlayerType.LIGHT)
+            s = figure(surface=self._screen, board_dim=board,
+                       border_dim=border, pos=light["town"])
+            self._sprites["towns"].append(s)
+
+        dark = self._board_state["dark"]
+        if "town" in dark.keys():
+            figure = self._theme.get_town(PlayerType.DARK)
+            s = figure(surface=self._screen, board_dim=board,
+                       border_dim=border, pos=dark["town"])
+            self._sprites["towns"].append(s)
+
 
     def _sprite_clicked(self, event_type, sprite: Sprite) -> None:
         """

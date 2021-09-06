@@ -1,3 +1,4 @@
+from stupid_engine.backend.visuals.block import Block
 from stupid_engine.cannon.visuals.game_board import Board
 from stupid_engine.backend.visuals.font import Font
 from stupid_engine.cannon.entities.player import Player, PlayerType
@@ -67,8 +68,17 @@ class Theme:
                                             img_path=soldier_path, size=(30, 30))
             return figure
 
-    def get_town(self) -> None:
-        pass
+    def get_town(self, type: PlayerType) -> Sprite:
+        # load the default theme
+        if self._theme == Theme.DEFAULT:
+            color = None
+            if type == PlayerType.LIGHT:
+                color = (240, 50, 0)
+            else:
+                color = (100, 150, 0)
+
+            figure = lambda **kwargs: Block(**kwargs, color=color)
+            return figure
 
     def get_move_point(self) -> None:
         pass

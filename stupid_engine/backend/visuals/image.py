@@ -97,7 +97,7 @@ class Image(Sprite):
         This method executes, if the soldier was clicked. A click is defined as button down 
         and up, while hovering the sprite.
         """
-        # if the soldier is active and a callback for the click event was defined, then execute it
-        if self._active and Sprite.CLICKED in self._callbacks.keys():
-            for func in self._callbacks[Sprite.CLICKED]:
-                self._board_state = func(Sprite.CLICKED, self)
+        if self._active:
+            for event_type in self._callbacks.keys():
+                for func in self._callbacks[event_type]:
+                    self._board_state = func(event_type, self)

@@ -8,9 +8,6 @@ COLOR = (255, 255, 255)
 
 
 class Movement(Sprite):
-    
-    CLICKED = py.event.custom_type()
-
     def __init__(self, surface, board_dim, border_dim, pos) -> None:
         """
         This class represents a soldier visually. Given on the position, the actual 
@@ -85,10 +82,8 @@ class Movement(Sprite):
         This method executes, if the movement point was clicked. A click is defined 
         as button down and up, while hovering the sprite.
         """
-        # if the movement point is active and a callback for the click event was defined, t
-        # hen execute it
-        if Movement.CLICKED in self._callbacks.keys():
-            for func in self._callbacks[Movement.CLICKED]:
-                self._board_state = func(Movement.CLICKED, self)
+        for event_type in self._callbacks.keys():
+            for func in self._callbacks[event_type]:
+                self._board_state = func(event_type, self)
 
 

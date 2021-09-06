@@ -7,7 +7,7 @@ from stupid_engine.cannon.game_controller import Application
 # create and start the Cannon game application
 app = Application(window_size=(400, 400), theme=Theme.DEFAULT)
 
-app.configure_ai(RandomAI, PlayerType.LIGHT)
-app.human_controls(PlayerType.DARK)
+app.configure_ai(RandomAI, PlayerType.DARK)
+app.human_controls(PlayerType.LIGHT)
 
 app.start()

@@ -1,4 +1,3 @@
-# Setup Model
 from stupid_engine.cannon.theme import Theme
 from typing import Tuple
 from stupid_engine.cannon.visuals.game import Game
@@ -28,11 +27,11 @@ class Application:
         # - if the user clicked on a Soldier, then the possible moves are
         #   calculated and put into the state
         # - all callback methods have to return the occured state
-        self._game.register_callback(
-            Game.SOLDIER_CLICKED, self._possible_moves)
+        self._game.register_callback(Game.SOLDIER_CLICKED, self._possible_moves)
         self._game.register_callback(Game.MOVE_TO_CLICKED, self._make_move)
+        self._game.register_callback(Game.PLACE_TOWN, self._place_town)
 
-    def _possible_moves(self, position):
+    def _possible_moves(self, position) -> None:
         # select the figure which should move / fire
         self._boomer.select_soldier(position)
 
@@ -43,7 +42,7 @@ class Application:
         self._game.set_board_state(
             board_state=state, active_player=self._boomer.get_type())
 
-    def _make_move(self, position):
+    def _make_move(self, position) -> None:
         # move the selected figure
         self._boomer.move_soldier(position)
 
@@ -54,6 +53,19 @@ class Application:
 
         # let the AI play its turn
         self._ai.play_turn()
+        state = self._cannon.get_state()
+        self._game.set_board_state(
+            board_state=state, active_player=self._boomer.get_type())
+    
+    def _place_town(self, position) -> None:
+        # place the town and update the state and update the GUI
+        self._boomer.place_town(position)
+        state = self._cannon.get_state()
+        self._game.set_board_state(
+            board_state=state, active_player=self._boomer.get_type())
+        
+        # let the AI place its town and update the GUI again
+        self._ai.place_town()
         state = self._cannon.get_state()
         self._game.set_board_state(
             board_state=state, active_player=self._boomer.get_type())
@@ -87,7 +99,11 @@ class Application:
             state = self._cannon.get_state()
             self._game.set_board_state(
                 board_state=state, active_player=self._boomer.get_type())
-
+        
+        # otherwise its the humans turn
+        else:
+            state = self._cannon.get_town_positions(self._boomer.get_type())
+            self._game.set_board_state(state, self._boomer.get_type())
 
         # Run the game loop
         self._game.game_loop()

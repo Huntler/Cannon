@@ -1,5 +1,5 @@
 from stupid_engine.cannon.entities.figures import CannonSoldier, CannonTown
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 
 class PlayerType:
@@ -68,8 +68,12 @@ class Player:
         self._selected.set_pos(position)
         self._selected = None
 
-    def get_state(self) -> List:
+    def get_state(self) -> Dict:
         """
         This method returns the current positions of all Soliders.
         """
-        return [s.pos() for s in self._soldiers]
+        state = dict()
+        state["soldiers"] = [s.pos() for s in self._soldiers]
+        if self._town is not None:
+            state["town"] = self._town.pos()
+        return state

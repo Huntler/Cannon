@@ -13,9 +13,6 @@ def to_pixel(pos: Tuple[int, int], board_dim: Tuple[int, int], border_dim: Tuple
 
 
 class Sprite:
-    
-    CLICKED = py.event.custom_type()
-
     def __init__(self) -> None:
         self._button_down = False
 

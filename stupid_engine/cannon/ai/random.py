@@ -11,8 +11,13 @@ class RandomAI:
     
     def get_player_type(self) -> PlayerType:
         return self._player.get_type()
+    
+    def place_town(self) -> None:
+        towns = self._cannon.get_town_positions(self.get_player_type())
+        position = random.choice(towns["towns"])
+        self._player.place_town(position)
 
-    def play_turn(self) -> Tuple[int, int]:
+    def play_turn(self) -> None:
         soldiers = self._player._soldiers
         moves = []
         while moves == [] and len(soldiers) != 0:
