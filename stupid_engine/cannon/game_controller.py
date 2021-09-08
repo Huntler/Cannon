@@ -98,8 +98,13 @@ class Application(GameController):
         This is executed in a while this thread is alive loop. Here the logic of the game 
         can be handled.
         """
+        # get the current state
+        state = self._cannon.get_state()
+        if not self._active.is_town_placed():
+            state = self._cannon.get_town_positions(self._active.get_type())
+
         # let the player or ai play a turn, if there was a change made, then return true
-        state_changed = self._active.play_turn(self._cannon.get_state())
+        state_changed = self._active.play_turn(state)
 
         # if the state has changed, then a move was made and the board has to be updated
         if state_changed:

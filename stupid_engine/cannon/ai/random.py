@@ -7,19 +7,18 @@ import time
 
 class RandomAI:
 
-    DELAY = 0.05
+    DELAY = 0.005
 
     def __init__(self, player: Player, cannon: CannonGame) -> None:
         self._type = player.get_type()
         self._player = player
         self._cannon = cannon
-    
-    def place_town(self) -> None:
-        towns = self._cannon.get_town_positions(self.get_player_type())
-        position = random.choice(towns["towns"])
-        self._player.place_town(position)
 
     def play_turn(self, state: Dict) -> bool:
+        if "towns" in state.keys():
+            position = random.choice(state["towns"])
+            self._player.place_town(position)            
+
         soldiers = state[self._type]["soldiers"]
         moves = []
         while moves == [] and len(soldiers) != 0:
