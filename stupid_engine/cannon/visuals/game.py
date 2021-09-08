@@ -2,66 +2,64 @@ from stupid_engine.cannon.theme import Theme
 from stupid_engine.cannon.entities.player import PlayerType
 from stupid_engine.backend.visuals.movement import Movement
 from stupid_engine.backend.visuals.sprite import Sprite
-from stupid_engine.backend.visuals.block import Block
-from typing import Dict, List, Tuple
+from stupid_engine.backend.game import Game
+from typing import Dict, Tuple
 import pygame as py
 
 
-class Game:
+class Game(Game):
 
     SOLDIER_CLICKED = py.event.custom_type()
     MOVE_TO_CLICKED = py.event.custom_type()
     PLACE_TOWN = py.event.custom_type()
 
+    # register events here :)
     EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED, PLACE_TOWN]
 
     def __init__(self, draw_size: Tuple[int, int] = (500, 500), border_size: Tuple[int, int] = (100, 100), theme: Theme = Theme.DEFAULT) -> None:
-        """
-        This class represents the game GUI and handles the user events.
-        """
-        py.init()
-
+        # set up the theme, which handles the visuals
         self._theme = Theme(theme)
 
+        # define all needed screen dimension including drawing area and border
         self._width, self._height = draw_size
         self._x_border, self._y_border = border_size
         self._window_size = (2 * self._x_border + self._width,
                              2 * self._y_border + self._height)
 
-        self._screen = py.display.set_mode(self._window_size)
+        super().__init__(self._window_size)
 
+        # draw the game board using the theme
         self._board_state = None
         self._board = self._theme.get_board(self._screen, draw_size + border_size)
 
         self._sprites = dict()
         self._callbacks = dict()
-
         self._running = False
-
-    def game_loop(self):
+    
+    def on_click(self, event_type, sprite: Sprite) -> None:
         """
-        This method contains the GUI loop. Here the events will be checked 
-        and screen elements drawn.
+        This is a callback function which is executed, if a registered event run. The sprite 
+        that was used in the event context is given.
         """
-        self._running = True
-        while self._running:
-            for event in py.event.get():
-                if event.type == py.QUIT:
-                    self._running = False
-                    quit()
+        if event_type not in self._callbacks.keys():
+            return
 
-            # draw the board
-            self._board.draw()
+        # check if event is part of registered events
+        if event_type in Game.EVENTS:
+            self._callbacks[event_type](sprite.get_position())
 
-            # draw the current game state
-            for name in ["soldiers", "moves", "towns"]:
-                if name in self._sprites.keys():
-                    for sprite in self._sprites[name]:
-                        sprite.draw()
+    def draw(self) -> None:
+        super().draw()
 
-            # print the screens background and update
-            py.display.flip()
+        # draw the game board as background
+        self._board.draw()
 
+        # draw the current game state
+        for name in ["soldiers", "moves", "towns"]:
+            if name in self._sprites.keys():
+                for sprite in self._sprites[name]:
+                    sprite.draw()
+    
     def set_board_state(self, board_state: Dict, active_player: PlayerType) -> None:
         """
         This method sets the board initially and creates all basic sprites like soldiers.
@@ -91,7 +89,7 @@ class Game:
                        border_dim=border, pos=pos)
 
             s.active(active_player == PlayerType.LIGHT)
-            s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
+            s.callback(Game.SOLDIER_CLICKED, self.on_click)
 
             self._sprites["soldiers"].append(s)
 
@@ -101,7 +99,7 @@ class Game:
                        border_dim=border, pos=pos)
 
             s.active(active_player == PlayerType.DARK)
-            s.callback(Game.SOLDIER_CLICKED, self._sprite_clicked)
+            s.callback(Game.SOLDIER_CLICKED, self.on_click)
 
             self._sprites["soldiers"].append(s)
 
@@ -114,7 +112,7 @@ class Game:
             moves = self._board_state["moves"]
             for move in moves:
                 s = Movement(self._screen, board, border, move)
-                s.callback(Game.MOVE_TO_CLICKED, self._sprite_clicked)
+                s.callback(Game.MOVE_TO_CLICKED, self.on_click)
                 self._sprites["moves"].append(s)
     
     def _set_towns(self):
@@ -127,7 +125,7 @@ class Game:
             towns = self._board_state["towns"]
             for town in towns:
                 s = Movement(self._screen, board, border, town)
-                s.callback(Game.PLACE_TOWN, self._sprite_clicked)
+                s.callback(Game.PLACE_TOWN, self.on_click)
                 self._sprites["towns"].append(s)
         
         # a town itself
@@ -144,26 +142,3 @@ class Game:
             s = figure(surface=self._screen, board_dim=board,
                        border_dim=border, pos=dark["town"])
             self._sprites["towns"].append(s)
-
-
-    def _sprite_clicked(self, event_type, sprite: Sprite) -> None:
-        """
-        This is a callback function which is executed, if a registered event run. The sprite 
-        that was used in the event context is given.
-        """
-        if event_type not in self._callbacks.keys():
-            return
-
-        if event_type in Game.EVENTS:
-            for func in self._callbacks[event_type]:
-                func(sprite.get_position())
-
-    def register_callback(self, event_type, func) -> None:
-        """
-        This method registers a callback outside the GUI which is executed if the 
-        given event occurs.
-        """
-        if event_type not in self._callbacks.keys():
-            self._callbacks[event_type] = []
-
-        self._callbacks[event_type].append(func)

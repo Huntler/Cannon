@@ -3,8 +3,8 @@ from typing import Dict, List, Tuple
 
 
 class PlayerType:
-    LIGHT = 0
-    DARK = 1
+    LIGHT = "light"
+    DARK = "dark"
 
 
 class Player:
@@ -18,6 +18,7 @@ class Player:
         self._town = None
         self._soldiers = None
         self._selected = None
+        self._ai = None
 
         if self._type == PlayerType.LIGHT:
             self._init_positions(start_pos=(1, 8), end_pos=(9, 5))
@@ -38,6 +39,9 @@ class Player:
         for column in range(start_pos[0], end_pos[0] + 1, 2):
             for row in range(start_pos[1], end_pos[1], -1):
                 self._soldiers.append(CannonSoldier(init_pos=(column, row)))
+
+    def is_town_placed(self) -> bool:
+        return self._town != None
 
     def place_town(self, town_pos: Tuple[int, int]) -> None:
         self._town = CannonTown(init_pos=town_pos)
@@ -77,3 +81,15 @@ class Player:
         if self._town is not None:
             state["town"] = self._town.pos()
         return state
+
+    def set_controller(self, ai) -> None:
+        """
+        This method sets the ai which controlls this player and makes choices.
+        """
+        self._ai = ai
+
+    def play_turn(self, state: Dict) -> bool:
+        """
+        This Method lets the ai or human play a turn. The returning is true if a move was made.
+        """
+        return self._ai.play_turn(state)

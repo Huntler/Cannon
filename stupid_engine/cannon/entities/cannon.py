@@ -55,7 +55,7 @@ class CannonGame:
                 continue
 
             # check if there is an object
-            if pos in state["light"]["soldiers"] or pos in state["dark"]["soldiers"]:
+            if pos in state[PlayerType.LIGHT]["soldiers"] or pos in state[PlayerType.DARK]["soldiers"]:
                 continue
 
             moves.append(pos)
@@ -65,7 +65,7 @@ class CannonGame:
     def get_state(self) -> Dict:
         state = {}
 
-        state["light"] = self._p_light.get_state()
-        state["dark"] = self._p_dark.get_state()
+        state[PlayerType.LIGHT] = self._p_light.get_state()
+        state[PlayerType.DARK] = self._p_dark.get_state()
 
         return state
