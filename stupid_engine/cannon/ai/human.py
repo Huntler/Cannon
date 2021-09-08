@@ -1,13 +1,11 @@
+from stupid_engine.cannon.ai.ai import BaseAI
 from stupid_engine.cannon.entities.cannon import CannonGame
 from stupid_engine.cannon.entities.player import Player
 from typing import Dict
 
 
-class Human:
-    def __init__(self, player: Player, cannon: CannonGame) -> None:
-        self._temp_state = None
-
-    def play_turn(self, state: Dict) -> None:
+class Human(BaseAI):
+    def play_turn(self, state: Dict) -> bool:
         """
         This method returns true, if the given state has changed.
         """

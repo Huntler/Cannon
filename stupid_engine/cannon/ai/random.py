@@ -1,13 +1,13 @@
-from stupid_engine.cannon.entities.player import Player, PlayerType
+from stupid_engine.cannon.entities.player import Player
 from stupid_engine.cannon.entities.cannon import CannonGame
-from typing import Dict, SupportsFloat, Tuple
+from typing import Dict
 import random
 import time
 
 
 class RandomAI:
 
-    DELAY = 0.1
+    DELAY = 0.05
 
     def __init__(self, player: Player, cannon: CannonGame) -> None:
         self._type = player.get_type()
