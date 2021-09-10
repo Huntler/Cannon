@@ -55,7 +55,7 @@ class CannonGame:
             if enemy.soldier_at(threat):
                 for move in [(x - 2, y - 2 * dir), (x, y - 2 * dir), (x + 2, y - 2 * dir)]:
                     if not Move.out_of_bounds(move) and not player.soldier_at(move) and not enemy.soldier_at(move):
-                        moves.append(Move(pos=move, finish_move=False, kill_move=False))
+                        moves.append(Move(pos=move, retreat=True))
         
         # recognize a cannon and find possible moves for it
         # TODO

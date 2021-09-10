@@ -38,12 +38,21 @@ class RandomAI:
             moves = self._cannon.moves(self._player, soldier)
 
             if moves != []:
+                # defense first
+                for move in moves:
+                    if move.is_retreat_move():
+                        self._cannon.execute(self._player, soldier, move)
+                        time.sleep(RandomAI.DELAY)
+                        return True
+
+                # attack second
                 for move in moves:
                     if move.is_kill_move() or move.is_finish_move():
                         self._cannon.execute(self._player, soldier, move)
                         time.sleep(RandomAI.DELAY)
                         return True
                 
+                # otherwise choose randomly
                 all_moves.append((soldier, random.choice(moves)))
         
         # this only occurs if there are no moves
