@@ -55,6 +55,10 @@ class Application(GameController):
         self._cannon.set_on_finish(self._game_finished)
     
     def _game_finished(self, player_type: PlayerType) -> None:
+        """
+        This method should be executed if the game ends. The winner is defined by 
+        the player type and given as a parameter.
+        """
         self._game.show_winner(player_type)
         quit()
 

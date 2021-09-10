@@ -44,7 +44,7 @@ class CannonGame:
                 moves.append(Move(pos=move, finish_move=finish_move, kill_move=kill_move))
         
         # create the capture / kill moves
-        for move in [(x - 1, y), (x + 1, dir)]:
+        for move in [(x - 1, y), (x + 1, y)]:
             if not Move.out_of_bounds(move) and not player.soldier_at(move):
                 # is a killing move
                 kill_move = enemy.soldier_at(move)
@@ -79,7 +79,6 @@ class CannonGame:
             [[(x - 1, y + dir), (x - 2, y + 2 * dir)], [(x + 2, y - 2 * dir), (x + 3, y - 3 * dir)]]
         ]
 
-        # FIXME: Debug this
         for structure, shots in cannon_cases:
             # check if there is a cannon structure
             structure_exists = True
@@ -89,7 +88,6 @@ class CannonGame:
             
             if not structure_exists:
                 continue
-        
             # add possible shot positions
             no_hit = True
             for move in shots:
@@ -97,6 +95,28 @@ class CannonGame:
                     no_hit = not enemy.soldier_at(move)
                     kill_move = not no_hit
                     moves.append(Move(pos=move, kill_move=kill_move, shoot=True))
+
+        
+        # if there is a structure and the soldier is at a back position, then the 
+        # solider can slide to the front
+        slide_cases = [(x - 3, y + 3 * dir), (x, y + 3 * dir), (x - 3, y - 3 * dir)]
+        for i, cannon_case in enumerate([cannon_cases[3], cannon_cases[1], cannon_cases[5]]):
+            structure, shoot = cannon_case
+
+            # check if the slide spot is available
+            if Move.out_of_bounds(slide_cases[i]) or player.soldier_at(slide_cases[i]) or enemy.soldier_at(slide_cases[i]):
+                continue
+
+            # check if the structure exists
+            structure_exists = True
+            for pos in structure:
+                if Move.out_of_bounds(pos) or not player.soldier_at(pos):
+                    structure_exists = False
+            
+            if not structure_exists:
+                continue
+            
+            moves.append(Move(pos=slide_cases[i], slide=True))
         
         return moves
 
@@ -111,19 +131,34 @@ class CannonGame:
         if move.is_shoot():
             if enemy.soldier_at(move.get_pos()):
                 enemy.remove_at(move.get_pos())
+                print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()} and hits an enemy!")
+                return
+
+            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, but here is nothing.")
 
         # remove an enemy if this is a kill move
         elif move.is_kill_move():
             enemy.remove_at(move.get_pos())
             player.move_soldier(soldier, move)
+            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, swordfight won!")
         
         # if the player won the game, then quit
         elif move.is_finish_move():
             self.end_game(player.get_type())
+            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, climbed the town's walls!")
         
         # just move the soldier
         else:
             player.move_soldier(soldier, move)
+
+            msg = "what a rough ground"
+            if move.is_retreat_move():
+                msg = "what a coward"
+            
+            if move.is_sliding_move():
+                msg = "those cannons are heavy"
+
+            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, {msg}.")
 
     def get_town_positions(self, turn: PlayerType) -> List[Move]:
         """
