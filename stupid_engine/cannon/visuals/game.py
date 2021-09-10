@@ -37,6 +37,9 @@ class Game(Game):
         self._callbacks = dict()
         self._running = False
     
+    def show_winner(self, player_type: PlayerType) -> None:
+        print(f"Player '{player_type}' has won the game.")
+    
     def on_click(self, event_type, sprite: Sprite) -> None:
         """
         This is a callback function which is executed, if a registered event run. The sprite 

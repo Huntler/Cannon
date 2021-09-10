@@ -43,13 +43,20 @@ class Application(GameController):
         the game visuals object.
         """
         self._game = Game(draw_size=self._window_size, theme=self._theme)
-        self._game.set_board_state(
-            self._cannon.get_state(), self._active.get_type())
-        self._game.on_callback(Game.QUIT, self.stop)
+        self._game.set_board_state(self._cannon.get_state(), self._active.get_type())
 
+        # handle user events / inputs
+        self._game.on_callback(Game.QUIT, self.stop)
         self._game.on_callback(Game.PLACE_TOWN, self._on_town_place)
         self._game.on_callback(Game.SOLDIER_CLICKED, self._on_soldier_clicked)
         self._game.on_callback(Game.MOVE_TO_CLICKED, self._on_move_clicked)
+
+        # handle game finished
+        self._cannon.set_on_finish(self._game_finished)
+    
+    def _game_finished(self, player_type: PlayerType) -> None:
+        self._game.show_winner(player_type)
+        quit()
 
     def _switch_player(self) -> None:
         """

@@ -8,6 +8,11 @@ class CannonGame:
     def __init__(self, p_light: Player, p_dark: Player) -> None:
         self._p_light = p_light
         self._p_dark = p_dark
+
+        self._on_finish_callback = None
+    
+    def set_on_finish(self, callback) -> None:
+        self._on_finish_callback = callback
     
     def moves(self, player: Player, soldier: CannonSoldier) -> List[Move]:
         """
@@ -58,7 +63,40 @@ class CannonGame:
                         moves.append(Move(pos=move, retreat=True))
         
         # recognize a cannon and find possible moves for it
-        # TODO
+        # check for 3 adjacent soldiers
+        cannon_cases = [
+            # orthogonal row, given soldier front
+            [[(x, y - dir), (x, y - 2 * dir)], [(x, y + 2 * dir), (x, y + 3 * dir)]],
+            # 3 in a orthogonal row, given soldier back
+            [[(x, y + dir), (x, y + 2 * dir)], [(x, y - 2 * dir), (x, y - 3 * dir)]],
+            # 3 in a diagonal row, given soldier front (right)
+            [[(x - 1, y - dir), (x - 2, y - 2 * dir)], [(x + 2, y + 2 * dir), (x + 3, y + 3 * dir)]],
+            # 3 in a diagonal row, given soldier back (right)
+            [[(x + 1, y + dir), (x + 2, y + 2 * dir)], [(x - 2, y - 2 * dir), (x - 3, y - 3 * dir)]],
+            # 3 in a diagonal row, given soldier front (left)
+            [[(x + 1, y - dir), (x + 2, y - 2 * dir)], [(x - 2, y + 2 * dir), (x - 3, y + 3 * dir)]],
+            # 3 in a diagonal row, given soldier back (left)
+            [[(x - 1, y + dir), (x - 2, y + 2 * dir)], [(x + 2, y - 2 * dir), (x + 3, y - 3 * dir)]]
+        ]
+
+        # FIXME: Debug this
+        for structure, shots in cannon_cases:
+            # check if there is a cannon structure
+            structure_exists = True
+            for pos in structure:
+                if Move.out_of_bounds(pos) or not player.soldier_at(pos):
+                    structure_exists = False
+            
+            if not structure_exists:
+                continue
+        
+            # add possible shot positions
+            no_hit = True
+            for move in shots:
+                if not Move.out_of_bounds(move) and no_hit:
+                    no_hit = not enemy.soldier_at(move)
+                    kill_move = not no_hit
+                    moves.append(Move(pos=move, kill_move=kill_move, shoot=True))
         
         return moves
 
@@ -69,15 +107,19 @@ class CannonGame:
         # get the opponent player
         enemy = self._p_dark if player == self._p_light else self._p_light
 
+        # remove the enemy soldier if the move is a shoot
+        if move.is_shoot():
+            if enemy.soldier_at(move.get_pos()):
+                enemy.remove_at(move.get_pos())
+
         # remove an enemy if this is a kill move
-        if move.is_kill_move():
+        elif move.is_kill_move():
             enemy.remove_at(move.get_pos())
             player.move_soldier(soldier, move)
         
         # if the player won the game, then quit
         elif move.is_finish_move():
-            print(f"The player '{player.get_type()}' has won!")
-            quit()
+            self.end_game(player.get_type())
         
         # just move the soldier
         else:
@@ -94,6 +136,13 @@ class CannonGame:
             towns.append(Move((x, y)))
 
         return towns
+
+    def end_game(self, player_type: PlayerType):
+        """
+        This method should be called if the game ends. The given type 
+        determines the winner.
+        """
+        self._on_finish_callback(player_type)
 
     def get_state(self) -> Dict:
         """

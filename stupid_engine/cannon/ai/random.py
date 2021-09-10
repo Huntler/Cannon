@@ -56,8 +56,11 @@ class RandomAI:
                 all_moves.append((soldier, random.choice(moves)))
         
         # this only occurs if there are no moves
+        # in this case the opponent wins the game
         if len(all_moves) == 0:
-            quit()
+            enemy_type = PlayerType.DARK if self._player.get_type() == PlayerType.LIGHT else PlayerType.LIGHT
+            self._cannon.end_game(enemy_type)
+            return False
 
         soldier, move = random.choice(all_moves)
         self._player.move_soldier(soldier, move)
