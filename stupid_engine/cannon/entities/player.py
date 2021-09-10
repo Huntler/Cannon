@@ -1,3 +1,4 @@
+from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.entities.figures import CannonSoldier, CannonTown
 from typing import Dict, List, Tuple
 
@@ -8,7 +9,6 @@ class PlayerType:
 
 
 class Player:
-
     def __init__(self, type: PlayerType) -> None:
         """
         The player is sets the Town initially and controlls the Soldiers afterwards. The 
@@ -17,7 +17,7 @@ class Player:
         self._type = type
         self._town = None
         self._soldiers = None
-        self._selected = None
+        self._selected_soldier = None
         self._ai = None
 
         if self._type == PlayerType.LIGHT:
@@ -43,44 +43,35 @@ class Player:
     def is_town_placed(self) -> bool:
         return self._town != None
 
-    def place_town(self, town_pos: Tuple[int, int]) -> None:
-        self._town = CannonTown(init_pos=town_pos)
+    def place_town(self, positions: List[Move]) -> None:
+        move = self._ai.set_town_position(positions)
+
+        # to wait for a human, humans are slow
+        if move is None:
+            return
+
+        self._town = CannonTown(init_pos=move.get_pos())
 
     def get_town_position(self) -> Tuple[int, int]:
-        return self._town.pos()
-    
-    def select_soldier(self, position) -> None:
-        """
-        This method selects a soldier owned by this player.
-        """
-        for s in self._soldiers:
-            if s.pos() == position:
-                self._selected = s
+        return self._town.get_pos()
 
     def get_type(self) -> PlayerType:
         return self._type
+    
+    def get_soldiers(self) -> List[CannonSoldier]:
+        return self._soldiers
 
-    def move_soldier(self, position) -> None:
+    def move_soldier(self, soldier: CannonSoldier, move: Move) -> None:
         """
-        This method moves the selected soldier to a given position. Make 
-        sure, that a soldier was selected before exectuing this.
-        """
-        if not self._selected:
-            print("Tried to move a soldier, but none was selected.")
-            quit()
-            
-        self._selected.set_pos(position)
-        self._selected = None
+        This method moves the given soldier to a given position.
+        """            
+        soldier.set_pos(move.get_pos())
 
-    def get_state(self) -> Dict:
+    def get_state(self) -> Tuple[List[CannonSoldier], CannonTown]:
         """
-        This method returns the current positions of all Soliders.
+        This method returns all Soliders and the Town.
         """
-        state = dict()
-        state["soldiers"] = [s.pos() for s in self._soldiers]
-        if self._town is not None:
-            state["town"] = self._town.pos()
-        return state
+        return self._soldiers, self._town
 
     def set_controller(self, ai) -> None:
         """
@@ -93,3 +84,33 @@ class Player:
         This Method lets the ai or human play a turn. The returning is true if a move was made.
         """
         return self._ai.play_turn(state)
+    
+    def remove_at(self, pos: Tuple[int, int]) -> None:
+        """
+        This method removes a soldier at the given position.
+        """
+        to_remove = self.soldier_at(pos)
+        self._soldiers.remove(to_remove)
+    
+    def select_soldier(self, soldier: CannonSoldier) -> None:
+        """
+        Selects a soldier.
+        """
+        self._selected_soldier = soldier
+    
+    def get_selected_soldier(self) -> CannonSoldier:
+        """
+        Returns the selected soldier
+        """
+        return self._selected_soldier
+
+    def soldier_at(self, pos: Tuple[int, int]) -> CannonSoldier:
+        """
+        This method checks if there is a soldier at the given position.
+        """
+        soldier = None
+        for s in self._soldiers:
+            if s.get_pos() == pos:
+                soldier = s
+
+        return soldier

@@ -1,7 +1,8 @@
+from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.ai.ai import BaseAI
 from stupid_engine.cannon.entities.cannon import CannonGame
 from stupid_engine.cannon.entities.player import Player
-from typing import Dict
+from typing import Dict, List, Tuple
 
 
 class Human(BaseAI):
@@ -10,9 +11,16 @@ class Human(BaseAI):
 
         self._temp_state = None
 
-    def place_town(self) -> None:
-        pass
-
+    def set_town_position(self, positions: List[Move]) -> Move:
+        """
+        This method sets the move to place the players town
+        """
+        # a bit hacky -.-
+        if type(positions) == tuple:
+            return Move(positions)
+            
+        return None
+    
     def play_turn(self, state: Dict) -> bool:
         """
         This method returns true, if the given state has changed.

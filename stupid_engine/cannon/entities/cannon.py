@@ -1,5 +1,7 @@
-from typing import Dict, List, Tuple
+from stupid_engine.cannon.entities.move import Move
+from stupid_engine.cannon.entities.figures import CannonSoldier
 from stupid_engine.cannon.entities.player import Player, PlayerType
+from typing import Dict, List, Tuple
 
 
 class CannonGame:
@@ -7,62 +9,74 @@ class CannonGame:
         self._p_light = p_light
         self._p_dark = p_dark
     
-    def get_town_positions(self, turn: PlayerType) -> Dict:
+    def moves(self, player: Player, soldier: CannonSoldier) -> List[Move]:
+        """
+        This method calulated possible moves of the given soldier.
+        """
+        # check if player owns a town
+        if not player.is_town_placed():
+            print("CannonGame.moves: The town was not placed yet.")
+            quit()
+
+        # get the opponent player
+        enemy = self._p_dark if player == self._p_light else self._p_light
+
+        # determine the direction in which the current player is playing
+        x, y = soldier.get_pos()
+        dir = -1 if player.get_type() == PlayerType.LIGHT else +1
+        
+        # create the basic movement moves: front_left, front, front_right
+        # this includes checking if a enemy soldier or the enemy town is placed 
+        # in this position. This move is then marked as kill / finishing move.
+        moves = []
+        for move in [(x - 1, y + dir), (x, y + dir), (x + 1, y + dir)]:
+            if not Move.out_of_bounds(move) and not player.soldier_at(move):
+                # is a killing move
+                kill_move = enemy.soldier_at(move)
+
+                # is a finishing move
+                finish_move = enemy.is_town_placed() and move == enemy.get_town_position()
+                moves.append(Move(pos=move, finish_move=finish_move, kill_move=kill_move))
+        
+        return moves
+
+    def execute(self, player: Player, soldier: CannonSoldier, move: Move) -> None:
+        """
+        This method executes the move of a given soldier.
+        """
+        # get the opponent player
+        enemy = self._p_dark if player == self._p_light else self._p_light
+
+        # remove an enemy if this is a kill move
+        if move.is_kill_move():
+            enemy.remove_at(move.get_pos())
+            player.move_soldier(soldier, move)
+        
+        # if the player won the game, then quit
+        elif move.is_finish_move():
+            print(f"The player '{player.get_type()}' has won!")
+            quit()
+        
+        # just move the soldier
+        else:
+            player.move_soldier(soldier, move)
+
+    def get_town_positions(self, turn: PlayerType) -> List[Move]:
         """
         This method gets all possible positions to place a town for the given player.
         """
-        state = self.get_state()
-        state["towns"] = []
-
+        towns = []
         # get all possible positions for a town
         y = 9 if turn == PlayerType.LIGHT else 0
         for x in range(0, 10):
-            state["towns"].append((x, y))
+            towns.append(Move((x, y)))
 
-        return state
-
-    def possible_moves(self, turn: PlayerType, pos: Tuple[int, int]) -> Dict:
-        """
-        This method collects all possible moves for the given soldier and adds 
-        the list of moves to the game state.
-        """
-        # this is invoked by a callback of the UI or an AI
-        state = self.get_state()
-
-        self._possible_movement(turn, pos, state)
-
-        return state
-
-    def _possible_movement(self, turn: PlayerType, pos: Tuple[int, int], state: Dict) -> None:
-        # set the game direction, so in which direction the soldiers are moving
-        dir = -1 if turn == PlayerType.LIGHT else +1
-        
-        x, y = pos
-        moves = []
-
-        # get all moves first
-        # the basic forward move
-        positions = []
-        positions.append((x - 1, y + dir))
-        positions.append((x, y + dir))
-        positions.append((x + 1, y + dir))
-
-        # delete moves that are invalid
-        for pos in positions:
-            x, y = pos
-            # check x for out of bounds
-            if x < 0 or 9 < x or y < 0 or 9 < y:
-                continue
-
-            # check if there is an object
-            if pos in state[PlayerType.LIGHT]["soldiers"] or pos in state[PlayerType.DARK]["soldiers"]:
-                continue
-
-            moves.append(pos)
-
-        state["moves"] = moves
+        return towns
 
     def get_state(self) -> Dict:
+        """
+        This method summarizes the current game state.
+        """
         state = {}
 
         state[PlayerType.LIGHT] = self._p_light.get_state()

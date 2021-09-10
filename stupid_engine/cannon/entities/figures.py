@@ -5,7 +5,7 @@ class CannonFigure:
     def __init__(self, init_pos: Tuple[int, int]) -> None:
         self._pos = init_pos
 
-    def pos(self) -> Tuple[int, int]:
+    def get_pos(self) -> Tuple[int, int]:
         return self._pos
     
     def set_pos(self, pos) -> None:

@@ -1,5 +1,6 @@
+from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.theme import Theme
-from stupid_engine.cannon.entities.player import PlayerType
+from stupid_engine.cannon.entities.player import Player, PlayerType
 from stupid_engine.backend.visuals.movement import Movement
 from stupid_engine.backend.visuals.sprite import Sprite
 from stupid_engine.backend.game import Game
@@ -73,35 +74,23 @@ class Game(Game):
     def _set_soldiers(self, active_player: PlayerType):
         self._sprites["soldiers"] = []
 
-        # get the initial positions
-        light = self._board_state["light"]["soldiers"]
-        dark = self._board_state["dark"]["soldiers"]
-
         border = (self._x_border, self._y_border)
         board = (self._width, self._height)
 
         # for each position of each soldier, create the object and add
         # it to the sprites
-        for pos in light:
-            # get and configure the themed figure
-            figure = self._theme.get_soldier(PlayerType.LIGHT)
-            s = figure(surface=self._screen, board_dim=board,
-                       border_dim=border, pos=pos)
+        for player_type in [PlayerType.LIGHT, PlayerType.DARK]:
+            soldiers, _ = self._board_state[player_type]
+            for soldier in soldiers:
+                # get and configure the themed figure
+                figure = self._theme.get_soldier(player_type)
+                s = figure(surface=self._screen, board_dim=board,
+                        border_dim=border, pos=soldier.get_pos())
 
-            s.active(active_player == PlayerType.LIGHT)
-            s.callback(Game.SOLDIER_CLICKED, self.on_click)
+                s.active(active_player == player_type)
+                s.callback(Game.SOLDIER_CLICKED, self.on_click)
 
-            self._sprites["soldiers"].append(s)
-
-        for pos in dark:
-            figure = self._theme.get_soldier(PlayerType.DARK)
-            s = figure(surface=self._screen, board_dim=board,
-                       border_dim=border, pos=pos)
-
-            s.active(active_player == PlayerType.DARK)
-            s.callback(Game.SOLDIER_CLICKED, self.on_click)
-
-            self._sprites["soldiers"].append(s)
+                self._sprites["soldiers"].append(s)
 
     def _set_moves(self):
         self._sprites["moves"] = []
@@ -111,7 +100,7 @@ class Game(Game):
         if "moves" in self._board_state.keys():
             moves = self._board_state["moves"]
             for move in moves:
-                s = Movement(self._screen, board, border, move)
+                s = Movement(self._screen, board, border, move.get_pos())
                 s.callback(Game.MOVE_TO_CLICKED, self.on_click)
                 self._sprites["moves"].append(s)
     
@@ -124,21 +113,16 @@ class Game(Game):
         if "towns" in self._board_state.keys():
             towns = self._board_state["towns"]
             for town in towns:
-                s = Movement(self._screen, board, border, town)
+                s = Movement(self._screen, board, border, town.get_pos())
                 s.callback(Game.PLACE_TOWN, self.on_click)
                 self._sprites["towns"].append(s)
         
         # a town itself
-        light = self._board_state["light"]
-        if "town" in light.keys():
-            figure = self._theme.get_town(PlayerType.LIGHT)
-            s = figure(surface=self._screen, board_dim=board,
-                       border_dim=border, pos=light["town"])
-            self._sprites["towns"].append(s)
+        for player_type in [PlayerType.LIGHT, PlayerType.DARK]:
+            soldiers, town = self._board_state[player_type]
+            if town and town.get_pos():
+                figure = self._theme.get_town(player_type)
+                s = figure(surface=self._screen, board_dim=board,
+                        border_dim=border, pos=town.get_pos())
 
-        dark = self._board_state["dark"]
-        if "town" in dark.keys():
-            figure = self._theme.get_town(PlayerType.DARK)
-            s = figure(surface=self._screen, board_dim=board,
-                       border_dim=border, pos=dark["town"])
-            self._sprites["towns"].append(s)
+                self._sprites["towns"].append(s)

@@ -1,44 +1,57 @@
-from stupid_engine.cannon.entities.player import Player
+from stupid_engine.cannon.entities.move import Move
+from stupid_engine.cannon.entities.player import Player, PlayerType
 from stupid_engine.cannon.entities.cannon import CannonGame
-from typing import Dict
+from typing import Dict, List, Tuple
 import random
 import time
 
 
 class RandomAI:
 
-    DELAY = 0.005
+    DELAY = 0.01
 
     def __init__(self, player: Player, cannon: CannonGame) -> None:
+        """
+        This is a random AI which acts greedy if it can.
+        """
         self._type = player.get_type()
         self._player = player
         self._cannon = cannon
 
+    def set_town_position(self, positions: List[Move]) -> Move:
+        """
+        This method places a position for the town randomly
+        """
+        position = random.choice(positions)
+        return position
+
     def play_turn(self, state: Dict) -> bool:
-        if "towns" in state.keys():
-            position = random.choice(state["towns"])
-            self._player.place_town(position)            
+        """
+        This method lets this AI play a turn. The soldier and move 
+        is selected randomly if the moves do not contain killing or 
+        finishing moves.
+        """
+        soldiers, town = state[self._type]
 
-        soldiers = state[self._type]["soldiers"]
-        moves = []
-        while moves == [] and len(soldiers) != 0:
+        all_moves = []
+        for soldier in soldiers:
+            moves = self._cannon.moves(self._player, soldier)
 
-            soldier = random.choice(soldiers)
-            moves = self._cannon.possible_moves(self._type, soldier)["moves"]
-
-            if moves == []:
-                soldiers.remove(soldier)
+            if moves != []:
+                for move in moves:
+                    if move.is_kill_move() or move.is_finish_move():
+                        self._cannon.execute(self._player, soldier, move)
+                        time.sleep(RandomAI.DELAY)
+                        return True
+                
+                all_moves.append((soldier, random.choice(moves)))
         
         # this only occurs if there are no moves
-        if len(soldiers) == 0:
+        if len(all_moves) == 0:
             quit()
-            return False
-        
-        move = random.choice(moves)
 
-        self._player.select_soldier(soldier)
-        self._player.move_soldier(move)
+        soldier, move = random.choice(all_moves)
+        self._player.move_soldier(soldier, move)
 
         time.sleep(RandomAI.DELAY)
-
         return True

@@ -19,6 +19,7 @@ class Game:
         self._screen = py.display.set_mode((window_size))
 
         self._callbacks = dict()
+        self._clock = py.time.Clock()
     
     def on_callback(self, type, func) -> None:
         """
@@ -50,6 +51,8 @@ class Game:
             self._running = False
             if Game.QUIT in self._callbacks.keys():
                 self._callbacks[Game.QUIT]()
+        
+        self._clock.tick(30)
     
     def draw(self) -> None:
         """

@@ -2,6 +2,7 @@
 - use move ordering!
 - Iterative depth -> dynamic depth depending on time left
 - store 2 killer moves
+- transition table TT
 
 - 2D container to keep track of the good moves (history heuristic)
 
