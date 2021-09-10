@@ -19,7 +19,7 @@ class Application(GameController):
         self._p_light = Player(PlayerType.LIGHT)
         self._p_dark = Player(PlayerType.DARK)
         self._cannon = CannonGame(self._p_light, self._p_dark)
-        self._active = self._p_light
+        self._active = self._p_dark
 
         # set the visual settings
         self._window_size = window_size

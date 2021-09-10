@@ -38,6 +38,28 @@ class CannonGame:
                 finish_move = enemy.is_town_placed() and move == enemy.get_town_position()
                 moves.append(Move(pos=move, finish_move=finish_move, kill_move=kill_move))
         
+        # create the capture / kill moves
+        for move in [(x - 1, y), (x + 1, dir)]:
+            if not Move.out_of_bounds(move) and not player.soldier_at(move):
+                # is a killing move
+                kill_move = enemy.soldier_at(move)
+
+                # is a finishing move
+                finish_move = enemy.is_town_placed() and move == enemy.get_town_position()
+                if kill_move or finish_move:
+                    moves.append(Move(pos=move, finish_move=finish_move, kill_move=kill_move))
+
+        # retreat move if the soldier is threatened
+        # the possible moves are 2 places behind the soldier and two places left/right of that position
+        for threat in [(x - 1, y + dir), (x, y + dir), (x + 1, y + dir), (x - 1, y), (x + 1, y)]:
+            if enemy.soldier_at(threat):
+                for move in [(x - 2, y - 2 * dir), (x, y - 2 * dir), (x + 2, y - 2 * dir)]:
+                    if not Move.out_of_bounds(move) and not player.soldier_at(move) and not enemy.soldier_at(move):
+                        moves.append(Move(pos=move, finish_move=False, kill_move=False))
+        
+        # recognize a cannon and find possible moves for it
+        # TODO
+        
         return moves
 
     def execute(self, player: Player, soldier: CannonSoldier, move: Move) -> None:
