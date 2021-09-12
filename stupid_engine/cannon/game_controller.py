@@ -96,11 +96,11 @@ class Application(GameController):
         for move in moves:
             if move.get_pos() == pos:
                 self._cannon.execute(self._active, soldier, move)
+                self._switch_player()
                 self._game.set_board_state(
                     board_state=self._cannon.get_state(), active_player=self._active.get_type())
-                self._switch_player()
-                return
-
+                break
+        
     def _on_town_place(self, pos: Tuple[int, int]) -> None:
         """
         This method is called if a town gets placed.
