@@ -92,9 +92,15 @@ class CannonGame:
             no_hit = True
             for move in shots:
                 if not Move.out_of_bounds(move) and no_hit:
+                    # if the shoot will hit a town, then mark this as finishing move
+                    if enemy.get_town_position() == move:
+                        moves.append(Move(pos=move, finish_move=True, shoot=True))
+
+                    # if the shoot does not hit an enemy or a town, then skip this move
                     no_hit = not enemy.soldier_at(move)
-                    kill_move = not no_hit
-                    moves.append(Move(pos=move, kill_move=kill_move, shoot=True))
+                    if no_hit:
+                        continue
+                    moves.append(Move(pos=move, kill_move=True, shoot=True))
 
         
         # if there is a structure and the soldier is at a back position, then the 
@@ -132,9 +138,6 @@ class CannonGame:
             if enemy.soldier_at(move.get_pos()):
                 enemy.remove_at(move.get_pos())
                 print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()} and hits an enemy!")
-                return
-
-            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, but here is nothing.")
 
         # remove an enemy if this is a kill move
         elif move.is_kill_move():
