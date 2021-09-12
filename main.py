@@ -9,6 +9,6 @@ from stupid_engine.cannon.game_controller import Application
 app = Application(window_size=(300, 300), theme=Theme.DEFAULT)
 
 app.set_player(PlayerType.LIGHT, RandomAI)
-app.set_player(PlayerType.DARK, Human)
+app.set_player(PlayerType.DARK, RandomAI)
 
 app.start_game()

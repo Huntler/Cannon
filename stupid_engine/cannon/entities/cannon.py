@@ -134,25 +134,23 @@ class CannonGame:
             if move.is_shoot():
                 msg = "bombed the town down"
 
-            self.end_game(player.get_type())
             print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, {msg}!")
+            self.end_game(player.get_type())
 
         # remove the enemy soldier if the move is a shoot
         elif move.is_shoot():
             if enemy.soldier_at(move.get_pos()):
-                enemy.remove_at(move.get_pos())
                 print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()} and hits an enemy!")
+                enemy.remove_at(move.get_pos())
 
         # remove an enemy if this is a kill move
         elif move.is_kill_move():
+            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, swordfight won!")
             enemy.remove_at(move.get_pos())
             player.move_soldier(soldier, move)
-            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, swordfight won!")
         
         # just move the soldier
         else:
-            player.move_soldier(soldier, move)
-
             msg = "what a rough ground"
             if move.is_retreat_move():
                 msg = "what a coward"
@@ -161,6 +159,7 @@ class CannonGame:
                 msg = "those cannons are heavy"
 
             print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, {msg}.")
+            player.move_soldier(soldier, move)
 
     def get_town_positions(self, turn: PlayerType) -> List[Move]:
         """
