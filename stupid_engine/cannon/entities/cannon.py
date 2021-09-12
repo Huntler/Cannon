@@ -101,18 +101,22 @@ class CannonGame:
                 continue
 
             # add possible shot positions
-            no_hit = True
             for move in shots:
-                if not Move.out_of_bounds(move) and no_hit:
+                if not Move.out_of_bounds(move):
                     # if the shoot will hit a town, then mark this as finishing move
                     if enemy.get_town_position() == move:
                         moves.append(Move(pos=move, finish_move=True, shoot=True))
+                        break
 
-                    # if the shoot does not hit an enemy or a town, then skip this move
-                    no_hit = not enemy.soldier_at(move)
-                    if no_hit:
-                        continue
-                    moves.append(Move(pos=move, kill_move=True, shoot=True))
+                    # if the shoot will hit a solider of this player, than skip
+                    if player.soldier_at(move):
+                        break
+
+                    # if the shoot wil hit an enemy soldier, then mark this move as 
+                    # shoot/kill and break
+                    if enemy.soldier_at(move):
+                        moves.append(Move(pos=move, kill_move=True, shoot=True))
+                        break
         
         return moves
 
@@ -123,8 +127,18 @@ class CannonGame:
         # get the opponent player
         enemy = self._p_dark if player == self._p_light else self._p_light
 
+        # if the player won the game, then quit
+        if move.is_finish_move():
+            msg = "climbed the town's walls"
+            
+            if move.is_shoot():
+                msg = "bombed the town down"
+
+            self.end_game(player.get_type())
+            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, {msg}!")
+
         # remove the enemy soldier if the move is a shoot
-        if move.is_shoot():
+        elif move.is_shoot():
             if enemy.soldier_at(move.get_pos()):
                 enemy.remove_at(move.get_pos())
                 print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()} and hits an enemy!")
@@ -134,11 +148,6 @@ class CannonGame:
             enemy.remove_at(move.get_pos())
             player.move_soldier(soldier, move)
             print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, swordfight won!")
-        
-        # if the player won the game, then quit
-        elif move.is_finish_move():
-            self.end_game(player.get_type())
-            print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, climbed the town's walls!")
         
         # just move the soldier
         else:
