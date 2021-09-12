@@ -1,3 +1,4 @@
+from stupid_engine.backend.visuals.text import Text
 from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.theme import Theme
 from stupid_engine.cannon.entities.player import Player, PlayerType
@@ -36,9 +37,14 @@ class Game(Game):
         self._sprites = dict()
         self._callbacks = dict()
         self._running = False
+
+        self._header = Text("StupidEngine: Cannon", self._screen, draw_size, border_size, (0, 11))
+        self._sprites["header"] = [self._header]
     
     def show_winner(self, player_type: PlayerType) -> None:
         print(f"Player '{player_type}' has won the game.")
+        # print out the winner into the game's header
+        self._header.set_text(f"Player {player_type} won the game")
     
     def on_click(self, event_type, sprite: Sprite) -> None:
         """
@@ -59,7 +65,7 @@ class Game(Game):
         self._board.draw()
 
         # draw the current game state
-        for name in ["soldiers", "moves", "towns"]:
+        for name in ["soldiers", "moves", "towns", "header"]:
             if name in self._sprites.keys():
                 for sprite in self._sprites[name]:
                     sprite.draw()
