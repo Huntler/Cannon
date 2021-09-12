@@ -64,22 +64,25 @@ class CannonGame:
         
         # recognize a cannon and find possible moves for it
         # check for 3 adjacent soldiers
+        # structure of the lists: 
+        # [soldiers needed for cannon; possible positions for shoots; 
+        #   free position for shoot; slide position]
         cannon_cases = [
             # orthogonal row, given soldier front
-            [[(x, y - dir), (x, y - 2 * dir)], [(x, y + 2 * dir), (x, y + 3 * dir)]],
+            [[(x, y - dir), (x, y - 2 * dir)], [(x, y + 2 * dir), (x, y + 3 * dir)], (x, y + dir), (x, y - 3 * dir)],
             # 3 in a orthogonal row, given soldier back
-            [[(x, y + dir), (x, y + 2 * dir)], [(x, y - 2 * dir), (x, y - 3 * dir)]],
+            [[(x, y + dir), (x, y + 2 * dir)], [(x, y - 2 * dir), (x, y - 3 * dir)], (x, y - dir), (x, y + 3 * dir)],
             # 3 in a diagonal row, given soldier front (right)
-            [[(x - 1, y - dir), (x - 2, y - 2 * dir)], [(x + 2, y + 2 * dir), (x + 3, y + 3 * dir)]],
+            [[(x - 1, y - dir), (x - 2, y - 2 * dir)], [(x + 2, y + 2 * dir), (x + 3, y + 3 * dir)], (x + dir, y + dir), (x - 3, y - 3 * dir)],
             # 3 in a diagonal row, given soldier back (right)
-            [[(x + 1, y + dir), (x + 2, y + 2 * dir)], [(x - 2, y - 2 * dir), (x - 3, y - 3 * dir)]],
-            # 3 in a diagonal row, given soldier front (left)
-            [[(x + 1, y - dir), (x + 2, y - 2 * dir)], [(x - 2, y + 2 * dir), (x - 3, y + 3 * dir)]],
+            [[(x + 1, y + dir), (x + 2, y + 2 * dir)], [(x - 2, y - 2 * dir), (x - 3, y - 3 * dir)], (x - dir, y - dir), (x + 3, y + 3 * dir)],
             # 3 in a diagonal row, given soldier back (left)
-            [[(x - 1, y + dir), (x - 2, y + 2 * dir)], [(x + 2, y - 2 * dir), (x + 3, y - 3 * dir)]]
+            [[(x - 1, y + dir), (x - 2, y + 2 * dir)], [(x + 2, y - 2 * dir), (x + 3, y - 3 * dir)], (x + dir, y - dir), (x - 3, y + 3 * dir)],
+            # 3 in a diagonal row, given soldier front (left)
+            [[(x + 1, y - dir), (x + 2, y - 2 * dir)], [(x - 2, y + 2 * dir), (x - 3, y + 3 * dir)], (x - dir, y + dir), (x + 3, y - 3 * dir)]
         ]
 
-        for structure, shots in cannon_cases:
+        for structure, shots, free, slide in cannon_cases:
             # check if there is a cannon structure
             structure_exists = True
             for pos in structure:
@@ -88,6 +91,15 @@ class CannonGame:
             
             if not structure_exists:
                 continue
+            
+            # if the given place is empty
+            if not Move.out_of_bounds(slide) and not enemy.soldier_at(slide) and not player.soldier_at(slide):
+                moves.append(Move(pos=slide))
+            
+            # check if there is the free position in front available so the cannon can shoot
+            if Move.out_of_bounds(free) or enemy.soldier_at(free) or player.soldier_at(free):
+                continue
+
             # add possible shot positions
             no_hit = True
             for move in shots:
@@ -101,28 +113,6 @@ class CannonGame:
                     if no_hit:
                         continue
                     moves.append(Move(pos=move, kill_move=True, shoot=True))
-
-        
-        # if there is a structure and the soldier is at a back position, then the 
-        # solider can slide to the front
-        slide_cases = [(x - 3, y + 3 * dir), (x, y + 3 * dir), (x - 3, y - 3 * dir)]
-        for i, cannon_case in enumerate([cannon_cases[3], cannon_cases[1], cannon_cases[5]]):
-            structure, shoot = cannon_case
-
-            # check if the slide spot is available
-            if Move.out_of_bounds(slide_cases[i]) or player.soldier_at(slide_cases[i]) or enemy.soldier_at(slide_cases[i]):
-                continue
-
-            # check if the structure exists
-            structure_exists = True
-            for pos in structure:
-                if Move.out_of_bounds(pos) or not player.soldier_at(pos):
-                    structure_exists = False
-            
-            if not structure_exists:
-                continue
-            
-            moves.append(Move(pos=slide_cases[i], slide=True))
         
         return moves
 

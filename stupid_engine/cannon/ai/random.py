@@ -8,7 +8,7 @@ import time
 
 class RandomAI:
 
-    DELAY = 0.01
+    DELAY = 0.5
 
     def __init__(self, player: Player, cannon: CannonGame) -> None:
         """
