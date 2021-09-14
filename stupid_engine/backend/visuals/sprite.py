@@ -4,12 +4,11 @@ import pygame as py
 GRID_SIZE = 10
 
 
-def to_pixel(pos: Tuple[int, int], board_dim: Tuple[int, int], border_dim: Tuple[int, int]) -> Tuple[int, int]:
-    w, h = board_dim
-    xb, yb = border_dim
-    sc = w / GRID_SIZE
+def to_pixel(pos: Tuple[int, int], draw_area: Tuple[int, int, int, int]) -> Tuple[int, int]:
+    dx, dy, dw, dh = draw_area
+    sc = dw / GRID_SIZE
     x, y = pos
-    return x * sc + xb + sc / 2, h - y * sc + yb - sc / 2
+    return dx + x * sc + sc / 2, dy + dh - y * sc - sc / 2
 
 
 class Sprite:

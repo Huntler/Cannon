@@ -4,14 +4,14 @@ from stupid_engine.backend.visuals.sprite import Sprite, to_pixel
 
 
 # a custom to_pixel function so the center of a block is used for positioning
-def _to_pixel(pos: Tuple[int, int], board_dim: Tuple[int, int], border_dim: Tuple[int, int], size: Tuple[int, int]) -> Tuple[int, int]:
-    x, y = to_pixel(pos, board_dim, border_dim)
+def _to_pixel(pos: Tuple[int, int], draw_area: Tuple[int, int], size: Tuple[int, int]) -> Tuple[int, int]:
+    x, y = to_pixel(pos, draw_area)
     w, h = size
     return x - w / 2, y - h / 2
 
 
 class Block(Sprite):
-    def __init__(self, surface, board_dim, border_dim, pos, color) -> None:
+    def __init__(self, surface, draw_area, pos, scaling, color) -> None:
         """
         This class represents a rectangle visually. Given on the position, the actual 
         pixel position on screen is calulated.
@@ -22,14 +22,14 @@ class Block(Sprite):
 
         # set color
         self._color = color
-        self._size = (20, 20)
+        self._scaling = scaling
+        self._size = (2 * scaling, 2 * scaling)
 
         # set position
         self._x_pos, self._y_pos = pos
-        self._board_dim = board_dim
-        self._border_dim = border_dim
+        self._board_dim = draw_area
         self._x, self._y = _to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim, self._size)
+            (self._x_pos, self._y_pos), self._board_dim, self._size)
 
         self._surface = surface
         super().__init__()
@@ -55,7 +55,7 @@ class Block(Sprite):
         """
         self._x_pos, self._y_pos = pos
         self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim)
+            (self._x_pos, self._y_pos), self._board_dim)
 
     def get_position(self) -> Tuple[int, int]:
         """

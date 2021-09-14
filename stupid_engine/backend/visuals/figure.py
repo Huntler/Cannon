@@ -3,10 +3,8 @@ from typing import Tuple
 import pygame as py
 
 
-SIZE = 10
-
 class Figure(Sprite):
-    def __init__(self, surface, board_dim, border_dim, pos, color) -> None:
+    def __init__(self, surface, draw_area, pos, scaling, color) -> None:
         """
         This class represents a soldier visually. Given on the position, the actual 
         pixel position on screen is calulated. The type determines the drawn color.
@@ -18,10 +16,10 @@ class Figure(Sprite):
 
         # set position
         self._x_pos, self._y_pos = pos
-        self._board_dim = board_dim
-        self._border_dim = border_dim
-        self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim)
+        self._draw_area = draw_area
+        self._x, self._y = to_pixel((self._x_pos, self._y_pos), self._draw_area)
+
+        self._scaling = scaling
 
         self._surface = surface
         super().__init__()
@@ -34,7 +32,7 @@ class Figure(Sprite):
         super().draw()
 
         pos = (self._x, self._y)
-        size = SIZE
+        size = self._scaling
 
         if self._active and self.collidepoint(py.mouse.get_pos()):
             size *= 1.2
@@ -46,8 +44,7 @@ class Figure(Sprite):
         This method sets the new position and calculates the pixel position on screen.
         """
         self._x_pos, self._y_pos = pos
-        self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim)
+        self._x, self._y = to_pixel((self._x_pos, self._y_pos), self._draw_area)
 
     def get_position(self) -> Tuple[int, int]:
         """
@@ -70,8 +67,8 @@ class Figure(Sprite):
         """
         _x, _y = point
 
-        if _x > self._x - SIZE and _x < self._x + SIZE:
-            if _y > self._y - SIZE and _y < self._y + SIZE:
+        if _x > self._x - self._scaling and _x < self._x + self._scaling:
+            if _y > self._y - self._scaling and _y < self._y + self._scaling:
                 return True
 
         return False

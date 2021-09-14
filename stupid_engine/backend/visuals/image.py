@@ -4,14 +4,14 @@ from stupid_engine.backend.visuals.sprite import to_pixel as _to_pixel
 import pygame as py
 
 
-def to_pixel(pos: Tuple[int, int], board_dim: Tuple[int, int], border_dim: Tuple[int, int], size: Tuple[int, int]) -> Tuple[int, int]:
-    x, y = _to_pixel(pos, board_dim, border_dim)
+def to_pixel(pos: Tuple[int, int], draw_area: Tuple[int, int], size: Tuple[int, int]) -> Tuple[int, int]:
+    x, y = _to_pixel(pos, draw_area)
     cx, cy = size
     return x - cx / 2, y - cy / 2
 
 
 class Image(Sprite):
-    def __init__(self, surface, board_dim, border_dim, pos, img_path: str, size: Tuple[int, int]) -> None:
+    def __init__(self, surface, draw_area, pos, img_path: str, size: Tuple[int, int]) -> None:
         """
         This class represents an image visually. Given on the position, the actual 
         pixel position on screen is calulated.
@@ -26,10 +26,9 @@ class Image(Sprite):
 
         # set position
         self._x_pos, self._y_pos = pos
-        self._board_dim = board_dim
-        self._border_dim = border_dim
+        self._draw_area = draw_area
         self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim, self._size)
+            (self._x_pos, self._y_pos), self._draw_area, self._size)
 
         self._surface = surface
         super().__init__()
@@ -62,7 +61,7 @@ class Image(Sprite):
         """
         self._x_pos, self._y_pos = pos
         self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim, self._size)
+            (self._x_pos, self._y_pos), self._draw_area, self._size)
 
     def get_position(self) -> Tuple[int, int]:
         """

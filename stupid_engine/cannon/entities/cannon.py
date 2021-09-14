@@ -26,6 +26,7 @@ class CannonGame:
             - if the move is killing a soldier
             - if the move saves a soldier
             - the difference of army size
+            
             - the difference of possible moves  TODO
             - the difference of cannons         TODO
         """

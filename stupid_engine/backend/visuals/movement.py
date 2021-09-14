@@ -8,7 +8,7 @@ COLOR = (255, 255, 255)
 
 
 class Movement(Sprite):
-    def __init__(self, surface, board_dim, border_dim, pos) -> None:
+    def __init__(self, surface, draw_area, pos, scaling) -> None:
         """
         This class represents a soldier visually. Given on the position, the actual 
         pixel position on screen is calulated. The type determines the drawn color.
@@ -20,9 +20,10 @@ class Movement(Sprite):
 
         # set position
         self._x_pos, self._y_pos = pos
-        self._board_dim = board_dim
-        self._border_dim = border_dim
-        self._x, self._y = to_pixel((self._x_pos, self._y_pos), self._board_dim, self._border_dim)
+        self._draw_area = draw_area
+        self._x, self._y = to_pixel((self._x_pos, self._y_pos), self._draw_area)
+
+        self._scaling = scaling
 
         self._surface = surface
         super().__init__()
@@ -48,7 +49,7 @@ class Movement(Sprite):
         """
         self._x_pos, self._y_pos = pos
         self._x, self._y = to_pixel(
-            (self._x_pos, self._y_pos), self._board_dim, self._border_dim)
+            (self._x_pos, self._y_pos), self._draw_area)
 
     def get_position(self) -> Tuple[int, int]:
         """

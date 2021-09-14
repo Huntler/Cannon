@@ -5,12 +5,11 @@ from stupid_engine.backend.visuals.sprite import Sprite, to_pixel
 
 
 class Text(Sprite):
-    def __init__(self, text: str, screen, board_dim, border_dim, pos, font: str = Font.ARIAL) -> None:
+    def __init__(self, text: str, screen, draw_area: Tuple[int, int, int, int], pos: Tuple[int, int], font: str = Font.ARIAL) -> None:
         super().__init__()
 
         self._screen = screen
-        self._board_dim = board_dim
-        self._border_dim = border_dim
+        self._draw_area = draw_area
         self._pos = pos
 
         py.font.init()
@@ -26,7 +25,7 @@ class Text(Sprite):
     
     def set_position(self, pos: Tuple[int, int]) -> None:
         x, y = self._pos = pos
-        x, y = to_pixel((x, y), self._board_dim, self._border_dim)
+        x, y = to_pixel((x, y), self._draw_area)
         self._x = x - self._font_size / 2
         self._y = y - self._font_size / 2
     

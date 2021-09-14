@@ -18,31 +18,29 @@ class Game(Game):
     # register events here :)
     EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED, PLACE_TOWN]
 
-    def __init__(self, draw_size: Tuple[int, int] = (500, 500), border_size: Tuple[int, int] = (100, 100), theme: Theme = Theme.DEFAULT) -> None:
+    def __init__(self, window_size: Tuple[int, int], draw_area: Tuple[int, int] = (500, 500), theme: Theme = Theme.DEFAULT) -> None:
+        super().__init__(window_size=window_size, draw_area=draw_area, frame_rate=30)
+
         # set up the theme, which handles the visuals
-        self._theme = Theme(theme)
-
-        # define all needed screen dimension including drawing area and border
-        self._width, self._height = draw_size
-        self._x_border, self._y_border = border_size
-        self._window_size = (2 * self._x_border + self._width,
-                             2 * self._y_border + self._height)
-
-        super().__init__(self._window_size)
-        self._frame_rate = 30
+        self._theme = Theme(theme, window_size, draw_area, self._screen)
+        self._scaling = self._theme.get_scaling()
 
         # draw the game board using the theme
         self._board_state = None
-        self._board = self._theme.get_board(self._screen, draw_size + border_size)
+        self._board = self._theme.get_board()
+        self._draw_area = self._board.get_draw_area()
 
         self._sprites = dict()
         self._callbacks = dict()
         self._running = False
 
-        self._header = Text("StupidEngine: Cannon", self._screen, draw_size, border_size, (0, 11))
+        self._header = Text("StupidEngine: Cannon", self._screen, self._draw_area, (0, 11))
         self._sprites["header"] = [self._header]
     
     def show_winner(self, player_type: PlayerType) -> None:
+        """
+        This method shows the winner on screen.
+        """
         print(f"Player '{player_type}' has won the game.")
         # print out the winner into the game's header
         self._header.set_text(f"Player {player_type} won the game")
@@ -84,7 +82,6 @@ class Game(Game):
     def _set_soldiers(self, active_player: PlayerType):
         self._sprites["soldiers"] = []
 
-        border = (self._x_border, self._y_border)
         board = (self._width, self._height)
 
         # for each position of each soldier, create the object and add
@@ -94,9 +91,7 @@ class Game(Game):
             for soldier in soldiers:
                 # get and configure the themed figure
                 figure = self._theme.get_soldier(player_type)
-                s = figure(surface=self._screen, board_dim=board,
-                        border_dim=border, pos=soldier.get_pos())
-
+                s = figure(pos=soldier.get_pos())
                 s.active(active_player == player_type)
                 s.callback(Game.SOLDIER_CLICKED, self.on_click)
 
@@ -104,26 +99,24 @@ class Game(Game):
 
     def _set_moves(self):
         self._sprites["moves"] = []
-        border = (self._x_border, self._y_border)
         board = (self._width, self._height)
 
         if "moves" in self._board_state.keys():
             moves = self._board_state["moves"]
             for move in moves:
-                s = Movement(self._screen, board, border, move.get_pos())
+                s = Movement(self._screen, self._draw_area, move.get_pos(), self._scaling)
                 s.callback(Game.MOVE_TO_CLICKED, self.on_click)
                 self._sprites["moves"].append(s)
     
     def _set_towns(self):
         self._sprites["towns"] = []
-        border = (self._x_border, self._y_border)
         board = (self._width, self._height)
 
         # possible places for a town
         if "towns" in self._board_state.keys():
             towns = self._board_state["towns"]
             for town in towns:
-                s = Movement(self._screen, board, border, town.get_pos())
+                s = Movement(self._screen, self._draw_area, town.get_pos(), self._scaling)
                 s.callback(Game.PLACE_TOWN, self.on_click)
                 self._sprites["towns"].append(s)
         
@@ -132,7 +125,5 @@ class Game(Game):
             soldiers, town = self._board_state[player_type]
             if town and town.get_pos():
                 figure = self._theme.get_town(player_type)
-                s = figure(surface=self._screen, board_dim=board,
-                        border_dim=border, pos=town.get_pos())
-
+                s = figure(pos=town.get_pos())
                 self._sprites["towns"].append(s)

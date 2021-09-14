@@ -8,7 +8,7 @@ from stupid_engine.cannon.entities.player import Player, PlayerType
 
 
 class Application(GameController):
-    def __init__(self, window_size: Tuple[int, int] = (300, 300), theme: Theme = Theme.DEFAULT) -> None:
+    def __init__(self, window_size: Tuple[int, int] = (400, 400), theme: Theme = Theme.DEFAULT) -> None:
         """
         This application handles the cannon game backend and frontend. Here
         the events and callbacks are connected, so the user can interact with 
@@ -27,22 +27,13 @@ class Application(GameController):
 
         super().__init__()
 
-    def set_player(self, type: PlayerType, ai) -> None:
-        """
-        This method maps the given ai to the specified player.
-        """
-        if type == PlayerType.LIGHT:
-            self._p_light.set_controller(ai(self._p_light, self._cannon))
-
-        else:
-            self._p_dark.set_controller(ai(self._p_dark, self._cannon))
-
     def _init_game_visuals(self) -> None:
         """
         This method is called right after the initialization and should configure 
         the game visuals object.
         """
-        self._game = Game(draw_size=self._window_size, theme=self._theme)
+        draw_size = (800, 800)
+        self._game = Game(window_size=self._window_size, draw_area=draw_size, theme=self._theme)
         self._game.set_board_state(self._cannon.get_state(), self._active.get_type())
 
         # handle user events / inputs
@@ -53,6 +44,16 @@ class Application(GameController):
 
         # handle game finished
         self._cannon.set_on_finish(self._game_finished)
+
+    def set_player(self, type: PlayerType, ai) -> None:
+        """
+        This method maps the given ai to the specified player.
+        """
+        if type == PlayerType.LIGHT:
+            self._p_light.set_controller(ai(self._p_light, self._cannon))
+
+        else:
+            self._p_dark.set_controller(ai(self._p_dark, self._cannon))
     
     def _game_finished(self, player_type: PlayerType) -> None:
         """

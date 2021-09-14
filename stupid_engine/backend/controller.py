@@ -12,6 +12,7 @@ class GameController(Thread):
         super(GameController, self).__init__(group=None, target=None, name="ControllerThread")
         
         self._running = False
+        self._game = None
         self._init_game_visuals()
     
     def _init_game_visuals(self) -> None:
