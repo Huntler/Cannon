@@ -95,7 +95,7 @@ class Application(GameController):
 
         for move in moves:
             if move.get_pos() == pos:
-                self._cannon.execute(self._active, soldier, move)
+                self._cannon.execute(self._active, move)
                 self._switch_player()
                 self._game.set_board_state(
                     board_state=self._cannon.get_state(), active_player=self._active.get_type())

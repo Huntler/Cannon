@@ -17,7 +17,7 @@ class Human(BaseAI):
         """
         # a bit hacky -.-
         if type(positions) == tuple:
-            return Move(positions)
+            return Move(positions, None)
             
         return None
     

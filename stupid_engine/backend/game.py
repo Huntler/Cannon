@@ -20,6 +20,7 @@ class Game:
 
         self._callbacks = dict()
         self._clock = py.time.Clock()
+        self._frame_rate = 30
     
     def on_callback(self, type, func) -> None:
         """
@@ -52,7 +53,7 @@ class Game:
             if Game.QUIT in self._callbacks.keys():
                 self._callbacks[Game.QUIT]()
         
-        self._clock.tick(30)
+        self._clock.tick(self._frame_rate)
     
     def draw(self) -> None:
         """

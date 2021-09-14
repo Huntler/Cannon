@@ -29,6 +29,7 @@ class Game(Game):
                              2 * self._y_border + self._height)
 
         super().__init__(self._window_size)
+        self._frame_rate = 30
 
         # draw the game board using the theme
         self._board_state = None

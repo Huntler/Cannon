@@ -1,3 +1,4 @@
+from stupid_engine.cannon.ai.ai import BaseAI
 from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.entities.player import Player, PlayerType
 from stupid_engine.cannon.entities.cannon import CannonGame
@@ -6,7 +7,7 @@ import random
 import time
 
 
-class RandomAI:
+class RandomAI(BaseAI):
 
     DELAY = 0.5
 
@@ -14,9 +15,7 @@ class RandomAI:
         """
         This is a random AI which acts greedy if it can.
         """
-        self._type = player.get_type()
-        self._player = player
-        self._cannon = cannon
+        super().__init__(player, cannon)
 
     def set_town_position(self, positions: List[Move]) -> Move:
         """
@@ -41,14 +40,14 @@ class RandomAI:
                 # defense first
                 for move in moves:
                     if move.is_retreat_move():
-                        self._cannon.execute(self._player, soldier, move)
+                        self._cannon.execute(self._player, move)
                         time.sleep(RandomAI.DELAY)
                         return True
 
                 # attack second
                 for move in moves:
                     if move.is_kill_move() or move.is_finish_move():
-                        self._cannon.execute(self._player, soldier, move)
+                        self._cannon.execute(self._player, move)
                         time.sleep(RandomAI.DELAY)
                         return True
                 
@@ -63,7 +62,7 @@ class RandomAI:
             return False
 
         soldier, move = random.choice(all_moves)
-        self._player.move_soldier(soldier, move)
+        self._player.move_soldier(move)
 
         time.sleep(RandomAI.DELAY)
         return True

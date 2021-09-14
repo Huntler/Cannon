@@ -52,8 +52,8 @@ class Player:
 
         self._town = CannonTown(init_pos=move.get_pos())
 
-    def get_town_position(self) -> Tuple[int, int]:
-        return self._town.get_pos()
+    def get_town(self) -> CannonTown:
+        return self._town
 
     def get_type(self) -> PlayerType:
         return self._type
@@ -61,10 +61,11 @@ class Player:
     def get_soldiers(self) -> List[CannonSoldier]:
         return self._soldiers
 
-    def move_soldier(self, soldier: CannonSoldier, move: Move) -> None:
+    def move_soldier(self, move: Move) -> None:
         """
         This method moves the given soldier to a given position.
         """            
+        soldier = move.get_soldier()
         soldier.set_pos(move.get_pos())
 
     def get_state(self) -> Tuple[List[CannonSoldier], CannonTown]:
@@ -114,3 +115,10 @@ class Player:
                 soldier = s
 
         return soldier
+    
+    def army_size(self) -> int:
+        """
+        Returns the amount of soliders.
+        """
+        return len(self._soldiers)
+

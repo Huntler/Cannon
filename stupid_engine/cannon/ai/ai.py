@@ -1,3 +1,4 @@
+from stupid_engine.cannon.entities.move import Move
 from typing import Dict, List, Tuple
 from stupid_engine.cannon.entities.player import Player
 from stupid_engine.cannon.entities.cannon import CannonGame
