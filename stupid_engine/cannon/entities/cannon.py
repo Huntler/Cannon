@@ -2,6 +2,7 @@ from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.entities.figures import CannonSoldier
 from stupid_engine.cannon.entities.player import Player, PlayerType
 from typing import Dict, List, Tuple
+import random
 
 
 class CannonGame:
@@ -10,6 +11,9 @@ class CannonGame:
         self._p_dark = p_dark
 
         self._on_finish_callback = None
+
+        # initialize random values for the zobrist hashing
+        self._zobrist = [[random.randint(0, 2**100 - 1) for _ in range(4)] for _ in range(100)]
     
     def set_on_finish(self, callback) -> None:
         self._on_finish_callback = callback
@@ -17,6 +21,36 @@ class CannonGame:
     def _get_enemy_player(self, player: Player) -> Player:
         return self._p_dark if player == self._p_light else self._p_light
     
+    def hash(self):
+        """
+        Uses Zobrist hash function to calulate the hash of the current board state.
+        """
+        hash = 0
+        # iterate over every piece and get its random value
+        # then store the random value into the has container using XOR
+        for soldier in self._p_light.get_soldiers():
+            x, y = soldier.get_pos()
+            i = x * 10 + y
+            hash ^= self._zobrist[i][0]
+        
+        if self._p_light.is_town_placed():
+            x, y = self._p_light.get_town().get_pos()
+            i = x * 10 + y
+            hash ^= self._zobrist[i][1]
+        
+        for soldier in self._p_dark.get_soldiers():
+            x, y = soldier.get_pos()
+            i = x * 10 + y
+            i = x * 10 + y
+            hash ^= self._zobrist[i][2]
+        
+        if self._p_dark.is_town_placed():
+            x, y = self._p_dark.get_town().get_pos()
+            i = x * 10 + y
+            hash ^= self._zobrist[i][3]
+
+        return hash     
+
     def eval(self, player: Player, move: Move) -> None:
         """
         This method is used to evaluate a move made by the given player. Features 
