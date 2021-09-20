@@ -8,7 +8,7 @@ from stupid_engine.cannon.entities.player import Player, PlayerType
 
 
 class Application(GameController):
-    def __init__(self, window_size: Tuple[int, int] = (400, 400), theme: Theme = Theme.DEFAULT) -> None:
+    def __init__(self, window_size: Tuple[int, int] = (400, 400), theme: Theme = Theme.DEFAULT, flags: int = 0) -> None:
         """
         This application handles the cannon game backend and frontend. Here
         the events and callbacks are connected, so the user can interact with 
@@ -24,6 +24,7 @@ class Application(GameController):
         # set the visual settings
         self._window_size = window_size
         self._theme = theme
+        self._flags = flags
 
         super().__init__()
 
@@ -33,7 +34,7 @@ class Application(GameController):
         the game visuals object.
         """
         draw_size = (800, 800)
-        self._game = Game(window_size=self._window_size, draw_area=draw_size, theme=self._theme)
+        self._game = Game(window_size=self._window_size, draw_area=draw_size, theme=self._theme, flags=self._flags)
         self._game.set_board_state(self._cannon.get_state(), self._active.get_type())
 
         # handle user events / inputs

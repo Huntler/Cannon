@@ -18,8 +18,8 @@ class Game(Game):
     # register events here :)
     EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED, PLACE_TOWN]
 
-    def __init__(self, window_size: Tuple[int, int], draw_area: Tuple[int, int] = (500, 500), theme: Theme = Theme.DEFAULT) -> None:
-        super().__init__(window_size=window_size, draw_area=draw_area, frame_rate=30)
+    def __init__(self, window_size: Tuple[int, int], draw_area: Tuple[int, int] = (500, 500), theme: Theme = Theme.DEFAULT, flags: int = 0) -> None:
+        super().__init__(window_size=window_size, draw_area=draw_area, frame_rate=30, flags=flags)
 
         # set up the theme, which handles the visuals
         self._theme = Theme(theme, window_size, draw_area, self._screen)

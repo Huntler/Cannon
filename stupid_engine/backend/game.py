@@ -8,7 +8,7 @@ class Game:
 
     QUIT = py.QUIT
 
-    def __init__(self, window_size: Tuple[int, int], draw_area: Tuple[int, int] = None, frame_rate: int = 60) -> None:
+    def __init__(self, window_size: Tuple[int, int], draw_area: Tuple[int, int] = None, frame_rate: int = 60, flags: int = 0) -> None:
         """
         This class structurizes a game and the corresponding GUI for 
         it. The main loop will block the main thread, so be sure to 
@@ -23,7 +23,7 @@ class Game:
             self._draw_area = self._window_size
 
         # define the screen on which all sprites are rendered
-        self._flags = py.FULLSCREEN | py.HWSURFACE | py.DOUBLEBUF# | py.SCALED 
+        self._flags = flags#py.FULLSCREEN | py.HWSURFACE | py.DOUBLEBUF# | py.SCALED 
         self._screen = py.display.set_mode(self._window_size, self._flags)
 
         # define a clock to limit the frames per second
