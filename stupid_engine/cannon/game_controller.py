@@ -34,6 +34,9 @@ class Application(GameController):
         the game visuals object.
         """
         draw_size = (800, 800)
+        if draw_size > self._window_size:
+            draw_size = self._window_size
+            
         self._game = Game(window_size=self._window_size, draw_area=draw_size, theme=self._theme, flags=self._flags)
         self._game.set_board_state(self._cannon.get_state(), self._active.get_type())
 

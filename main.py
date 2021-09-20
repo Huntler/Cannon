@@ -9,7 +9,7 @@ import pygame as py
 
 # create and start the Cannon game application
 flags = py.FULLSCREEN, py.HWSURFACE, py.DOUBLEBUF
-app = Application(window_size=(2560, 1600), theme=Theme.DEFAULT, flags=0)
+app = Application(window_size=(400, 400), theme=Theme.DEFAULT, flags=0)
 
 # finish, shoot, kill, retreat, army size
 ab1 = lambda p, c: AlphaBeta(p, c, -50, 50, 4, [5, 3, 1, 2, 1])
