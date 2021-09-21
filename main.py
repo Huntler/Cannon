@@ -6,15 +6,27 @@ from stupid_engine.cannon.entities.player import PlayerType
 from stupid_engine.cannon.game_controller import Application
 import pygame as py
 
+FULLSCREEN = False
+
 
 # create and start the Cannon game application
-flags = py.FULLSCREEN, py.HWSURFACE, py.DOUBLEBUF
-app = Application(window_size=(400, 400), theme=Theme.DEFAULT, flags=0)
+fullscreen_size = (2560, 1600)
+fullscreen_flags = py.FULLSCREEN | py.HWSURFACE | py.DOUBLEBUF
+
+windowed_size = (500, 500)
+windowed_flags = 0
+
+if FULLSCREEN:
+    app = Application(window_size=fullscreen_size, theme=Theme.DEFAULT, flags=fullscreen_flags)
+else:
+    app = Application(window_size=windowed_size, theme=Theme.DEFAULT, flags=windowed_flags)
+
 
 # finish, shoot, kill, retreat, army size
-ab1 = lambda p, c: AlphaBeta(p, c, -50, 50, 4, [5, 3, 1, 2, 1])
+ab1 = lambda p, c: AlphaBeta(p, c, -50, 50, 3, [5, 3, 1, 2, 1])
+ab2 = lambda p, c: AlphaBeta(p, c, -50, 50, 4, [10, 5, 0, 2, 1])
 
 app.set_player(PlayerType.LIGHT, ab1)
-app.set_player(PlayerType.DARK, RandomAI)
+app.set_player(PlayerType.DARK, ab2)
 
 app.start_game()
