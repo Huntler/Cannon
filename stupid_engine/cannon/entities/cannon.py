@@ -1,5 +1,5 @@
 from stupid_engine.cannon.entities.move import Move
-from stupid_engine.cannon.entities.figures import CannonSoldier
+from stupid_engine.cannon.entities.figures import CannonFigure, CannonSoldier
 from stupid_engine.cannon.entities.player import Player, PlayerType
 from typing import Dict, List, Tuple
 import random
@@ -51,7 +51,7 @@ class CannonGame:
 
         return hash     
 
-    def eval(self, player: Player, move: Move) -> None:
+    def eval(self, player: Player, move: Move, weights: List[int]) -> None:
         """
         This method is used to evaluate a move made by the given player. Features 
         considerd in this function are:
@@ -65,8 +65,6 @@ class CannonGame:
             - the difference of cannons         TODO
         """
         enemy = self._get_enemy_player(player)
-        # finish, shoot, kill, retreat, army size
-        weights = [100, 3, 3, 1, 5]
 
         value = 0
         if move.is_finish_move():
@@ -101,39 +99,41 @@ class CannonGame:
         # in this position. This move is then marked as kill / finishing move.
         moves = []
         for move in [(x - 1, y + dir), (x, y + dir), (x + 1, y + dir)]:
-            if not Move.out_of_bounds(move) and not player.soldier_at(move) and player.get_town().get_pos() != move:
-                # is a killing move
-                to_kill = enemy.soldier_at(move)
+            if Move.out_of_bounds(move):
+                continue
 
-                # is a finishing move
-                finish = None
-                if enemy.is_town_placed() and move == enemy.get_town().get_pos():
-                    finish = enemy.get_town()
+            if not player.soldier_at(move):
+                kill = enemy.soldier_at(move)
+                if kill:
+                    kill = kill.get_pos()
+                finish = enemy.get_town() if enemy.get_town().get_pos() == move else None
 
-                moves.append(Move(pos=move, soldier=soldier, finish=finish, kill=to_kill))
+                moves.append(Move(pos=move, soldier=soldier.get_pos(), finish=finish, kill=kill))
         
         # create the capture / kill moves
         for move in [(x - 1, y), (x + 1, y)]:
-            if not Move.out_of_bounds(move) and not player.soldier_at(move):
-                # is a killing move
-                to_kill = enemy.soldier_at(move)
-                if to_kill is None:
-                    continue
+            if Move.out_of_bounds(move):
+                continue
 
-                # is a finishing move
-                finish = None
-                if enemy.is_town_placed() and move == enemy.get_town().get_pos():
-                    finish = enemy.get_town()
+            if enemy.soldier_at(move):
+                kill = enemy.soldier_at(move)
+                if kill:
+                    kill = kill.get_pos()
+                finish = enemy.get_town() if enemy.get_town().get_pos() == move else None
 
-                moves.append(Move(pos=move, soldier=soldier, finish=finish, kill=to_kill))
+                moves.append(Move(pos=move, soldier=soldier.get_pos(), finish=finish, kill=kill))
 
         # retreat move if the soldier is threatened
         # the possible moves are 2 places behind the soldier and two places left/right of that position
         for threat in [(x - 1, y + dir), (x, y + dir), (x + 1, y + dir), (x - 1, y), (x + 1, y)]:
             if enemy.soldier_at(threat):
+                # TODO: implement light of sight
                 for move in [(x - 2, y - 2 * dir), (x, y - 2 * dir), (x + 2, y - 2 * dir)]:
-                    if not Move.out_of_bounds(move) and not player.soldier_at(move) and not enemy.soldier_at(move) and player.get_town().get_pos() != move:
-                        moves.append(Move(pos=move, soldier=soldier, retreat=True))
+                    if Move.out_of_bounds(move) or player.get_town().get_pos() == move:
+                        continue
+
+                    if not player.soldier_at(move) and not enemy.soldier_at(move):
+                        moves.append(Move(pos=move, soldier=soldier.get_pos(), retreat=True))
         
         # recognize a cannon and find possible moves for it
         # check for 3 adjacent soldiers
@@ -166,8 +166,8 @@ class CannonGame:
                 continue
             
             # if the given place is empty
-            if not Move.out_of_bounds(slide) and not enemy.soldier_at(slide) and not player.soldier_at(slide)  and player.get_town().get_pos() != move and enemy.get_town().get_pos() != move:
-                moves.append(Move(pos=slide, soldier=soldier, slide=True))
+            if not Move.out_of_bounds(slide) and not enemy.soldier_at(slide) and not player.soldier_at(slide) and player.get_town().get_pos() != move and enemy.get_town().get_pos() != move:
+                moves.append(Move(pos=slide, soldier=soldier.get_pos(), slide=True))
             
             # check if there is the free position in front available so the cannon can shoot
             if Move.out_of_bounds(free) or enemy.soldier_at(free) or player.soldier_at(free):
@@ -177,8 +177,9 @@ class CannonGame:
             for move in shots:
                 if not Move.out_of_bounds(move):
                     # if the shoot will hit a town, then mark this as finishing move
-                    if enemy.get_town().get_pos() == move:
-                        moves.append(Move(pos=move, soldier=soldier, finish=enemy.get_town(), shoot=True))
+                    town = enemy.get_town().get_pos()
+                    if town == move:
+                        moves.append(Move(pos=move, soldier=soldier.get_pos(), finish=town, shoot=True))
                         break
 
                     # if the shoot will hit a solider of this player, than skip
@@ -187,8 +188,9 @@ class CannonGame:
 
                     # if the shoot wil hit an enemy soldier, then mark this move as 
                     # shoot/kill and break
-                    if enemy.soldier_at(move):
-                        moves.append(Move(pos=move, soldier=soldier, kill=enemy.soldier_at(move), shoot=True))
+                    kill = enemy.soldier_at(move)
+                    if kill:
+                        moves.append(Move(pos=move, soldier=soldier.get_pos(), kill=kill.get_pos(), shoot=True))
                         break
         
         return moves
@@ -199,7 +201,7 @@ class CannonGame:
         """
         # get the opponent player
         enemy = self._get_enemy_player(player)
-        soldier = move.get_soldier()
+        soldier = player.soldier_at(move.get_original_pos())
 
         # if the player won the game, then quit
         if move.is_finish_move():
@@ -237,7 +239,7 @@ class CannonGame:
 
             if not testing_only:
                 print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, {msg}.")
-            player.move_soldier(move)
+            player.move_soldier(move)  
 
     def get_town_positions(self, turn: PlayerType) -> List[Move]:
         """
@@ -268,14 +270,15 @@ class CannonGame:
         enemy = self._get_enemy_player(player)
 
         # get the soldier and move it back to its original position
-        soldier = move.get_soldier()
-        soldier.set_pos(move.get_original_pos())
+        soldier = player.soldier_at(move.get_pos())
+        if soldier:
+            soldier.set_pos(move.get_original_pos())
 
         # restore a killed enemy
-        killed = move.get_enemy_killed()
+        killed = move.get_killed_pos()
         if killed:
             enemies_army = enemy.get_soldiers()
-            enemies_army.append(killed)
+            enemies_army.append(CannonSoldier(killed))
 
     def get_state(self) -> Dict:
         """

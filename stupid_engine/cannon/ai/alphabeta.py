@@ -23,8 +23,10 @@ class AlphaBeta(BaseAI):
         super().__init__(player, cannon)
 
         self._moves = None
+        
         self._alpha = alpha
         self._beta = beta
+
         self._depth = depth
         self._weights = weights
 
@@ -60,17 +62,23 @@ class AlphaBeta(BaseAI):
         return moves
 
     def _algorithm(self, alpha: int, beta: int, depth: int, player: Player, move: Move) -> Tuple[int, Move]:
+        # execute the given move to search deeper
+        if move:
+            self._cannon.execute(player, move, testing_only=True)
+            player = self._cannon._get_enemy_player(player)
+
         # if the maximum depth is reached, then return the best move
         if(depth == 0) :
             moves = self._get_all_moves(player)
             # because of move ordering, the first move is the best one
             best_move = moves[0]
-            return best_move._value, best_move
 
-        # execute the given move to search deeper
-        if move:
-            self._cannon.execute(player, move, testing_only=True)
-            player = self._cannon._get_enemy_player(player)
+            print(f"{player.get_type()} in leaf node")
+            print(f"The values are alpha={alpha}, beta={beta}, score={best_move._value}")
+            print(f"Move is {best_move.get_original_pos()} -> {best_move.get_pos()}")
+            print()
+
+            return best_move._value, best_move
         
         best_move = None
         moves = self._get_all_moves(player)

@@ -1,18 +1,22 @@
-from stupid_engine.cannon.entities.figures import CannonFigure, CannonSoldier, CannonTown
+from stupid_engine.cannon.entities.figures import OutOfBounds
 from typing import Tuple
 
 
 class Move:
-    def __init__(self, pos: Tuple[int, int], soldier: CannonSoldier, value: int = -1, hash: int = -1,
-                    finish: CannonTown = None, kill: CannonSoldier = None, shoot: bool = False, 
+
+    OUT_OF_BOUNDS = OutOfBounds
+
+    def __init__(self, pos: Tuple[int, int], soldier: Tuple[int, int], value: int = -1,
+                    finish: Tuple[int, int] = None, kill: Tuple[int, int] = None, shoot: bool = False, 
                     retreat: bool = False, slide: bool = False) -> None:
         self._pos = pos
-        self._original_pos = soldier.get_pos() if soldier else None
-        self._soldier = soldier
+        
+        self._original_pos = soldier
         self._value = value
 
         self._finish = finish
         self._kill = kill
+
         self._retreat = retreat
         self._shoot = shoot
         self._slide = slide
@@ -38,13 +42,10 @@ class Move:
     def get_value(self) -> int:
         return self._value
     
-    def get_soldier(self) -> CannonSoldier:
-        return self._soldier
-    
-    def get_enemy_killed(self) -> CannonSoldier:
+    def get_killed_pos(self) -> Tuple[int, int]:
         return self._kill
 
-    def get_town_attacked(self) -> CannonTown:
+    def get_town_pos(self) -> Tuple[int, int]:
         return self._finish
 
     def get_pos(self) -> Tuple[int, int]:

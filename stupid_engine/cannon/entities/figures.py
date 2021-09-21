@@ -20,3 +20,7 @@ class CannonTown(CannonFigure):
 class CannonSoldier(CannonFigure):
     def __init__(self, init_pos: Tuple[int, int]) -> None:
         super().__init__(init_pos)
+
+
+class OutOfBounds(CannonFigure):
+    pass

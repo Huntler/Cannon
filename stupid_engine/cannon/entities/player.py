@@ -65,7 +65,7 @@ class Player:
         """
         This method moves the given soldier to a given position.
         """            
-        soldier = move.get_soldier()
+        soldier = self.soldier_at(move.get_original_pos())
         soldier.set_pos(move.get_pos())
 
     def get_state(self) -> Tuple[List[CannonSoldier], CannonTown]:
