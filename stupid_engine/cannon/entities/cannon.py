@@ -13,7 +13,9 @@ class CannonGame:
         self._on_finish_callback = None
 
         # initialize random values for the zobrist hashing
-        self._zobrist = [[random.randint(0, 2**100 - 1) for _ in range(4)] for _ in range(100)]
+        # one entry for each piece at eache square and one entry for the player playing
+        self._zobrist_player = (random.randint(0, 2**64 - 1), random.randint(0, 2**64 - 1))
+        self._zobrist = [[[random.randint(0, 2**64 - 1) for _ in range(4)] for _ in range(10)] for _ in range(10)]
     
     def set_on_finish(self, callback) -> None:
         self._on_finish_callback = callback
@@ -21,33 +23,35 @@ class CannonGame:
     def _get_enemy_player(self, player: Player) -> Player:
         return self._p_dark if player == self._p_light else self._p_light
     
-    def hash(self):
+    def hash(self, player_type: PlayerType, state: Dict = None):
         """
         Uses Zobrist hash function to calulate the hash of the current board state.
         """
+        if state is None:
+            state = self.get_state()
+
         hash = 0
+
         # iterate over every piece and get its random value
         # then store the random value into the has container using XOR
-        for soldier in self._p_light.get_soldiers():
+        for soldier in state[PlayerType.LIGHT][0]:
             x, y = soldier.get_pos()
-            i = x * 10 + y
-            hash ^= self._zobrist[i][0]
+            hash ^= self._zobrist[x][y][0]
         
-        if self._p_light.is_town_placed():
+        if state[PlayerType.LIGHT][1]:
             x, y = self._p_light.get_town().get_pos()
-            i = x * 10 + y
-            hash ^= self._zobrist[i][1]
+            hash ^= self._zobrist[x][y][1]
         
-        for soldier in self._p_dark.get_soldiers():
+        for soldier in state[PlayerType.DARK][0]:
             x, y = soldier.get_pos()
-            i = x * 10 + y
-            i = x * 10 + y
-            hash ^= self._zobrist[i][2]
+            hash ^= self._zobrist[x][y][2]
         
-        if self._p_dark.is_town_placed():
+        if state[PlayerType.DARK][1]:
             x, y = self._p_dark.get_town().get_pos()
-            i = x * 10 + y
-            hash ^= self._zobrist[i][3]
+            hash ^= self._zobrist[x][y][3]
+
+        player_index = 0 if player_type == PlayerType.LIGHT else 1
+        hash ^= self._zobrist_player[player_index]
 
         return hash     
 
@@ -279,6 +283,9 @@ class CannonGame:
         if killed:
             enemies_army = enemy.get_soldiers()
             enemies_army.append(CannonSoldier(killed))
+        
+        if not soldier and not killed and not move.is_finish_move():
+            raise ValueError("The move is invalid!")
 
     def get_state(self) -> Dict:
         """

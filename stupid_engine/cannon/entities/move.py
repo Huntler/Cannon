@@ -60,3 +60,11 @@ class Move:
         """
         x, y = pos
         return x < 0 or 9 < x or y < 0 or 9 < y
+
+    def __copy__(self):
+        # get the class and initialize the object
+        obj = type(self).__new__(self.__class__)
+
+        # update the dictionary / values of the object
+        obj.__dict__.update(self.__dict__)
+        return obj

@@ -22,9 +22,9 @@ else:
     app = Application(window_size=windowed_size, theme=Theme.DEFAULT, flags=windowed_flags)
 
 
-# finish, shoot, kill, retreat, army size
-ab1 = lambda p, c: AlphaBeta(p, c, -50, 50, 3, [5, 3, 1, 2, 1])
-ab2 = lambda p, c: AlphaBeta(p, c, -50, 50, 4, [10, 5, 0, 2, 1])
+# finish, shoot, kill, retreat, army size (per soldier diff)
+ab1 = lambda p, c: AlphaBeta(p, c, -50, 50, 4, [10, 5, 1, 2, 1], True)
+ab2 = lambda p, c: AlphaBeta(p, c, -20, 100, 4, [100, 3, 1, 2, 1], True)
 
 app.set_player(PlayerType.LIGHT, ab1)
 app.set_player(PlayerType.DARK, ab2)
