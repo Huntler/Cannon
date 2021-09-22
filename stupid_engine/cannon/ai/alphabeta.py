@@ -39,7 +39,6 @@ class AlphaBeta(BaseAI):
 
         # create the transposition table container
         self._tt = dict()
-        # self._debug = dict()
 
     def play_turn(self, state: Dict) -> bool:
         """
@@ -117,43 +116,9 @@ class AlphaBeta(BaseAI):
                 print(f"Load a move from the transposition table. Entries in table {len(self._tt)}")
                 print(f"{player.get_type()}'s move is {best_move.get_original_pos()} -> {best_move.get_pos()}")
 
-            # poss = []
-            # state = self._debug[tt_hash][PlayerType.LIGHT][0]
-            # for soldier in state:
-            #     poss.append(soldier.get_pos())
-
-            # print("\tLight (s)", poss)
-            
-            # poss = []
-            # state = self._cannon.get_state()[PlayerType.LIGHT][0]
-            # for soldier in state:
-            #     poss.append(soldier.get_pos())
-
-            # print("\tLight (n)", poss)
-
-            # poss = []
-            # state = self._debug[tt_hash][PlayerType.DARK][0]
-            # for soldier in state:
-            #     poss.append(soldier.get_pos())
-
-            # print("\tDark (s)", poss)
-
-            # poss = []
-            # state = self._cannon.get_state()[PlayerType.DARK][0]
-            # for soldier in state:
-            #     poss.append(soldier.get_pos())
-
-            # print("\tDark (n)", poss)
-
-            # print("\thash(s)", self._cannon.hash(player.get_type(), self._debug[tt_hash]))
-            # print("\thash(n)", tt_hash)
-
             score, _ = self._algorithm(-1 * beta, -1 * alpha, depth - 1, player, best_move)
             score *= -1
             self._cannon.undo(player, best_move)
-
-            # s2 = self._cannon.get_state()
-            # assert s1 == s2
 
             return score, best_move
 
@@ -185,6 +150,5 @@ class AlphaBeta(BaseAI):
                 raise ValueError("Multiple hashes are not valid!")
 
             self._tt[tt_hash] = deepcopy(best_move)
-            # self._debug[tt_hash] = deepcopy(self._cannon.get_state())
 
         return alpha, best_move
