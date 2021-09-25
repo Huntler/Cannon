@@ -35,10 +35,10 @@ class Player:
         if self._soldiers:
             return
 
-        self._soldiers = []
+        self._soldiers = dict()
         for column in range(start_pos[0], end_pos[0] + 1, 2):
             for row in range(start_pos[1], end_pos[1], -1):
-                self._soldiers.append(CannonSoldier(init_pos=(column, row)))
+                self._soldiers[(column, row)] = CannonSoldier(init_pos=(column, row))
 
     def is_town_placed(self) -> bool:
         return self._town != None
@@ -58,15 +58,17 @@ class Player:
     def get_type(self) -> PlayerType:
         return self._type
     
-    def get_soldiers(self) -> List[CannonSoldier]:
+    def get_soldiers(self) -> Dict:
         return self._soldiers
 
     def move_soldier(self, move: Move) -> None:
         """
         This method moves the given soldier to a given position.
-        """            
-        soldier = self.soldier_at(move.get_original_pos())
+        """
+        soldier = self._soldiers[move.get_original_pos()]
+        del self._soldiers[move.get_original_pos()]
         soldier.set_pos(move.get_pos())
+        self._soldiers[move.get_pos()] = soldier
 
     def get_state(self) -> Tuple[List[CannonSoldier], CannonTown]:
         """
@@ -90,8 +92,7 @@ class Player:
         """
         This method removes a soldier at the given position.
         """
-        to_remove = self.soldier_at(pos)
-        self._soldiers.remove(to_remove)
+        del self._soldiers[pos]
     
     def select_soldier(self, soldier: CannonSoldier) -> None:
         """
@@ -109,16 +110,20 @@ class Player:
         """
         This method checks if there is a soldier at the given position.
         """
-        soldier = None
-        for s in self._soldiers:
-            if s.get_pos() == pos:
-                soldier = s
+        # cProfile showed: this is very slow and the main reason why the algorihtm is slow
+        # for s in self._soldiers:
+        #     if s.get_pos() == pos:
+        #         return s
+        #
+        # so I changed the data structure to a hashmap
+        # this reduced the total runtime of this method from 22s to 2s
+        # 90% of runtime saved here
 
-        return soldier
+        return self._soldiers.get(pos, None)
     
     def army_size(self) -> int:
         """
         Returns the amount of soliders.
         """
-        return len(self._soldiers)
+        return len(self._soldiers.keys())
 

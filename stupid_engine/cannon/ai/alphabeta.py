@@ -16,7 +16,8 @@ from stupid_engine.cannon.entities.player import Player, PlayerType
 from typing import Dict, List, Tuple
 from stupid_engine.cannon.ai.ai import BaseAI
 import random
-from copy import copy, deepcopy
+from copy import deepcopy
+import cProfile
 
 
 VERBOSE = False
@@ -46,17 +47,21 @@ class AlphaBeta(BaseAI):
         move, then this function returns false. Otherwise the move is registered and true 
         returned.
         """
-        _, move = self._algorithm(self._alpha, self._beta, self._depth, self._player, None)
-        if not move:
-            enemy = self._cannon._get_enemy_player(self._player)
-            self._cannon.end_game(enemy.get_type())
-            return False
+        with cProfile.Profile() as pr:
+            _, move = self._algorithm(self._alpha, self._beta, self._depth, self._player, None)
+            if not move:
+                enemy = self._cannon._get_enemy_player(self._player)
+                self._cannon.end_game(enemy.get_type())
+                pr.print_stats()
+                return False
 
-        self._cannon.execute(self._player, move)
+            self._cannon.execute(self._player, move)
 
-        # clean up the transposition table
-        if self._refresh_tt:
-            self._tt = dict()
+            # clean up the transposition table
+            if self._refresh_tt:
+                self._tt = dict()
+        
+        pr.print_stats()
         return True
 
     def set_town_position(self, positions: List[Move]) -> Move:
@@ -71,8 +76,9 @@ class AlphaBeta(BaseAI):
         This helper method gets all moves for all soldiers available.
         """
         moves = []
-        for s in player.get_soldiers():
-            for m in self._cannon.moves(player, s):
+        soldiers = player.get_soldiers()
+        for pos in soldiers.keys():
+            for m in self._cannon.moves(player, soldiers[pos]):
                 moves.append(m)
                 # evaluate all moves (even some unnecessary ones)
                 value = self._cannon.eval(player, m, self._weights)

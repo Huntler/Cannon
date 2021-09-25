@@ -64,7 +64,7 @@ class Game(Game):
         self._board.draw()
 
         # draw the current game state
-        for name in ["soldiers", "moves", "towns", "header"]:
+        for name in ["towns", "soldiers", "moves", "header"]:
             if name in self._sprites.keys():
                 for sprite in self._sprites[name]:
                     sprite.draw()
@@ -88,10 +88,10 @@ class Game(Game):
         # it to the sprites
         for player_type in [PlayerType.LIGHT, PlayerType.DARK]:
             soldiers, _ = self._board_state[player_type]
-            for soldier in soldiers:
+            for pos in soldiers:
                 # get and configure the themed figure
                 figure = self._theme.get_soldier(player_type)
-                s = figure(pos=soldier.get_pos())
+                s = figure(pos=pos)
                 s.active(active_player == player_type)
                 s.callback(Game.SOLDIER_CLICKED, self.on_click)
 
