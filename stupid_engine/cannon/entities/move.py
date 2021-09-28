@@ -7,7 +7,7 @@ class Move:
     OUT_OF_BOUNDS = OutOfBounds
 
     def __init__(self, pos: Tuple[int, int], soldier: Tuple[int, int], value: int = -1,
-                    finish: Tuple[int, int] = None, kill: Tuple[int, int] = None, shoot: bool = False, 
+                    finish: bool = False, kill: Tuple[int, int] = None, shoot: bool = False, 
                     retreat: bool = False, slide: bool = False) -> None:
         self._pos = pos
         
@@ -22,7 +22,7 @@ class Move:
         self._slide = slide
 
     def is_finish_move(self) -> bool:
-        return self._finish is not None
+        return self._finish
 
     def is_kill_move(self) -> bool:
         return self._kill is not None
@@ -44,9 +44,6 @@ class Move:
     
     def get_killed_pos(self) -> Tuple[int, int]:
         return self._kill
-
-    def get_town_pos(self) -> Tuple[int, int]:
-        return self._finish
 
     def get_pos(self) -> Tuple[int, int]:
         return self._pos

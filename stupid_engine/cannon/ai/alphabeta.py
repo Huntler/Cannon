@@ -17,7 +17,7 @@ from typing import Dict, List, Tuple
 from stupid_engine.cannon.ai.ai import BaseAI
 import random
 from copy import deepcopy
-import cProfile
+import cProfile, pstats
 
 
 VERBOSE = False
@@ -47,6 +47,9 @@ class AlphaBeta(BaseAI):
         move, then this function returns false. Otherwise the move is registered and true 
         returned.
         """
+        # if less soldiers are available, then the algorithm can search deeper
+        # also it is clever to switch the focus by changing the evaluation function's weights
+
         with cProfile.Profile() as pr:
             _, move = self._algorithm(self._alpha, self._beta, self._depth, self._player, None)
             if not move:
@@ -61,7 +64,9 @@ class AlphaBeta(BaseAI):
             if self._refresh_tt:
                 self._tt = dict()
         
-        pr.print_stats()
+        pstats.Stats(pr).sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
+        quit()
+
         return True
 
     def set_town_position(self, positions: List[Move]) -> Move:
@@ -84,10 +89,10 @@ class AlphaBeta(BaseAI):
                 value = self._cannon.eval(player, m, self._weights)
                 m._value = value
 
-        # sort the moves using the evaluation value
-        # this optimization is called "move-ordering"
-        moves.sort(key=lambda m: m._value, reverse=True)
         return moves
+
+    def _sort_moves(self, moves: List[Move]):
+        moves.sort(key=lambda m: m._value, reverse=True)
 
     def _algorithm(self, alpha: int, beta: int, depth: int, player: Player, move: Move) -> Tuple[int, Move]:
         # execute the given move to search deeper
@@ -98,6 +103,7 @@ class AlphaBeta(BaseAI):
         # if the maximum depth is reached, then return the best move
         if(depth == 0) :
             moves = self._get_all_moves(player)
+            self._sort_moves(moves)
             if len(moves) == 0:
                 return 0, None
             # because of move ordering, the first move is the best one
@@ -116,8 +122,6 @@ class AlphaBeta(BaseAI):
         tt_hash = self._cannon.hash(player.get_type())
         best_move = self._tt.get(tt_hash, None)
         if best_move is not None:
-
-            # s1 = self._cannon.get_state()
             if VERBOSE:
                 print(f"Load a move from the transposition table. Entries in table {len(self._tt)}")
                 print(f"{player.get_type()}'s move is {best_move.get_original_pos()} -> {best_move.get_pos()}")
@@ -129,6 +133,10 @@ class AlphaBeta(BaseAI):
             return score, best_move
 
         moves = self._get_all_moves(player)
+        # only use move ordering at the two top plys
+        if self._depth - depth < 2:
+            self._sort_moves(move)
+
         for move in moves:
             s1 = self._cannon.get_state()
             # do the recursion step
