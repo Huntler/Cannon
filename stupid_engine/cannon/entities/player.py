@@ -1,6 +1,7 @@
 from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.entities.figures import CannonSoldier, CannonTown
 from typing import Dict, List, Tuple
+import random
 
 
 class PlayerType:
@@ -66,9 +67,9 @@ class Player:
         This method moves the given soldier to a given position.
         """
         soldier = self._soldiers[move.get_original_pos()]
-        del self._soldiers[move.get_original_pos()]
         soldier.set_pos(move.get_pos())
         self._soldiers[move.get_pos()] = soldier
+        del self._soldiers[move.get_original_pos()]
 
     def get_state(self) -> Tuple[List[CannonSoldier], CannonTown]:
         """
@@ -118,6 +119,7 @@ class Player:
         # so I changed the data structure to a hashmap
         # this reduced the total runtime of this method from 22s to 2s
         # 90% of runtime saved here
+        # obv. O(n) changed to O(1)
 
         return self._soldiers.get(pos, None)
     
@@ -126,4 +128,3 @@ class Player:
         Returns the amount of soliders.
         """
         return len(self._soldiers.keys())
-

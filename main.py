@@ -5,6 +5,7 @@ from stupid_engine.cannon.theme import Theme
 from stupid_engine.cannon.entities.player import PlayerType
 from stupid_engine.cannon.game_controller import Application
 import pygame as py
+import math
 
 FULLSCREEN = False
 
@@ -23,8 +24,8 @@ else:
 
 
 # finish, shoot, kill, retreat, army size (per soldier diff) e.g.: [10, 5, 1, 2, 1]
-ab1 = lambda p, c: AlphaBeta(p, c, -50, 50, 4, [1, 5, 5, 2, 2], True)
-ab2 = lambda p, c: AlphaBeta(p, c, -50, 50, 4, [1, 5, 5, 2, 2], True)
+ab1 = lambda p, c: AlphaBeta(p, c, -math.inf, math.inf, 5, [1, 5, 5, 2, 2], True)
+ab2 = lambda p, c: AlphaBeta(p, c, -math.inf, math.inf, 4, [1, 5, 5, 2, 2], True)
 
 app.set_player(PlayerType.LIGHT, ab1)
 app.set_player(PlayerType.DARK, ab2)

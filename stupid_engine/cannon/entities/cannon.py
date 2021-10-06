@@ -3,6 +3,7 @@ from stupid_engine.cannon.entities.figures import CannonFigure, CannonSoldier
 from stupid_engine.cannon.entities.player import Player, PlayerType
 from typing import Dict, List, Tuple
 import random
+import functools
 
 
 class CannonGame:
@@ -85,8 +86,10 @@ class CannonGame:
 
         # more soldiers is better 
         value += (player.army_size() - enemy.army_size()) * weights[4]
-        return value
+        move._value = value
+        return move
     
+    @functools.lru_cache(maxsize=256)
     def moves(self, player: Player, soldier: CannonSoldier) -> List[Move]:
         """
         This method calulated possible moves of the given soldier.

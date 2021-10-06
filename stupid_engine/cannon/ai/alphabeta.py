@@ -16,7 +16,7 @@ from stupid_engine.cannon.entities.player import Player, PlayerType
 from typing import Dict, List, Tuple
 from stupid_engine.cannon.ai.ai import BaseAI
 import random
-from copy import deepcopy
+from copy import deepcopy, copy
 import cProfile, pstats
 
 
@@ -65,7 +65,7 @@ class AlphaBeta(BaseAI):
                 self._tt = dict()
         
         pstats.Stats(pr).sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
-        quit()
+        # quit()
 
         return True
 
@@ -75,20 +75,28 @@ class AlphaBeta(BaseAI):
         """
         position = random.choice(positions)
         return position
-    
-    def _get_all_moves(self, player: Player) -> List[Move]:
-        """
-        This helper method gets all moves for all soldiers available.
-        """
-        moves = []
-        soldiers = player.get_soldiers()
-        for pos in soldiers.keys():
-            for m in self._cannon.moves(player, soldiers[pos]):
-                moves.append(m)
-                # evaluate all moves (even some unnecessary ones)
-                value = self._cannon.eval(player, m, self._weights)
-                m._value = value
 
+    def _get_moves(self, player) -> List[Move]:
+        moves = []
+        for s in [copy(_) for _ in player.get_soldiers().values()]:
+            soldier_move_list = [m for m  in self._cannon.moves(player, s)]
+            moves += soldier_move_list
+        
+        return
+
+    def _get_moves_sorted(self, player, copy_enabled=True) -> List[Move]:
+        soldiers = None
+        if copy_enabled:
+            soldiers = [copy(_) for _ in player.get_soldiers().values()]
+        else:
+            soldiers = [_ for _ in player.get_soldiers().values()]
+
+        moves = []
+        for s in soldiers:
+            soldier_move_list = [self._cannon.eval(player, m, self._weights) for m  in self._cannon.moves(player, s)]
+            moves += soldier_move_list
+
+        self._sort_moves(moves)
         return moves
 
     def _sort_moves(self, moves: List[Move]):
@@ -102,10 +110,11 @@ class AlphaBeta(BaseAI):
 
         # if the maximum depth is reached, then return the best move
         if(depth == 0) :
-            moves = self._get_all_moves(player)
-            self._sort_moves(moves)
+            moves = self._get_moves_sorted(player, False)
+
             if len(moves) == 0:
                 return 0, None
+
             # because of move ordering, the first move is the best one
             best_move = moves[0]
 
@@ -132,21 +141,22 @@ class AlphaBeta(BaseAI):
 
             return score, best_move
 
-        moves = self._get_all_moves(player)
-        # only use move ordering at the two top plys
-        if self._depth - depth < 2:
-            self._sort_moves(move)
-
-        for move in moves:
-            s1 = self._cannon.get_state()
+        """""
+        moves = []
+        _temp_copy_is_bad_but_whatever = [deepcopy(_) for _ in player.get_soldiers().values()]
+        for soldier in _temp_copy_is_bad_but_whatever:
+            for move in self._cannon.moves(player, soldier):
+                moves.append(move)
+        """""
+        
+        for move in self._get_moves_sorted(player):
+            move._value = self._cannon.eval(player, move, self._weights)
             # do the recursion step
             score, _ = self._algorithm(-1 * beta, -1 * alpha, depth - 1, player, move)
             score *= -1
 
             # undo the recursion step
             self._cannon.undo(player, move)
-            s2 = self._cannon.get_state()
-            assert s1 == s2
 
             if score >= beta:
                 # fail hard -> beta cut off
