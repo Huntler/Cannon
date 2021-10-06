@@ -16,6 +16,7 @@ from stupid_engine.cannon.entities.player import Player, PlayerType
 from typing import Dict, List, Tuple
 from stupid_engine.cannon.ai.ai import BaseAI
 import random
+import time
 from copy import deepcopy, copy
 import cProfile, pstats
 
@@ -24,7 +25,7 @@ VERBOSE = False
 
 
 class AlphaBeta(BaseAI):
-    def __init__(self, player: Player, cannon: CannonGame, alpha: int, beta: int, depth: int, weights: List[int], refresh_tt: bool = True) -> None:
+    def __init__(self, player: Player, cannon: CannonGame, alpha: int, beta: int, max_depth: int, time_limit: int, weights: List[int], refresh_tt: bool = True) -> None:
         super().__init__(player, cannon)
 
         self._moves = None
@@ -34,9 +35,13 @@ class AlphaBeta(BaseAI):
         self._beta = beta
 
         # get the depth and weight values
-        self._depth = depth
+        self._depth = max_depth
         self._weights = weights
         self._refresh_tt = refresh_tt
+
+        # iterative deepening
+        self._time_start = 0
+        self._time_limit = time_limit
 
         # create the transposition table container
         self._tt = dict()
@@ -51,6 +56,8 @@ class AlphaBeta(BaseAI):
         # also it is clever to switch the focus by changing the evaluation function's weights
 
         with cProfile.Profile() as pr:
+            # remember the start time for iterative deepening
+            self._time_start = time.time()
             _, move = self._algorithm(self._alpha, self._beta, self._depth, self._player, None)
             if not move:
                 enemy = self._cannon._get_enemy_player(self._player)
@@ -103,13 +110,16 @@ class AlphaBeta(BaseAI):
         moves.sort(key=lambda m: m._value, reverse=True)
 
     def _algorithm(self, alpha: int, beta: int, depth: int, player: Player, move: Move) -> Tuple[int, Move]:
+        # get the current time to check if the search should end
+        time_exceeded = time.time() - self._time_start > self._time_limit
+
         # execute the given move to search deeper
         if move is not None:
             self._cannon.execute(player, move, testing_only=True)
             player = self._cannon._get_enemy_player(player)
 
         # if the maximum depth is reached, then return the best move
-        if(depth == 0) :
+        if(depth == 0 or time_exceeded) :
             moves = self._get_moves_sorted(player, False)
 
             if len(moves) == 0:
