@@ -4,6 +4,7 @@ from stupid_engine.cannon.entities.player import Player, PlayerType
 from typing import Dict, List, Tuple
 import random
 import functools
+from copy import copy
 
 
 class CannonGame:
@@ -94,6 +95,7 @@ class CannonGame:
         """
         This method calulated possible moves of the given soldier.
         """
+
         # get the opponent player
         enemy = self._get_enemy_player(player)
         moves = []
@@ -118,25 +120,36 @@ class CannonGame:
                 continue
 
             kill = enemy.soldier_at(move)
+            town = enemy.get_town().get_pos() == move
+
+            # kill is not interesting if the player can finish the game
+            if town:
+                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), finish=town))
+                continue
+
             if kill:
                 kill = kill.get_pos()
-            finish = enemy.get_town() if enemy.get_town().get_pos() == move else None
+                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), kill=kill))
 
-            moves.append(Move(pos=move, soldier=soldier.get_pos(), finish=finish, kill=kill))
+            else:
+                moves.append(Move(pos=move, soldier=soldier.get_pos()))
         
         # create the capture / kill moves
         for move in [(x - 1, y), (x + 1, y)]:
             kill = enemy.soldier_at(move)
             town = enemy.get_town().get_pos() == move
 
+            # kill is not interesting if the player can finish the game
             if town:
-                # kill is not interesting if the player can finish the game
-                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), finish=True, kill=None))
+                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), finish=True))
                 continue
 
             if kill:
                 kill = kill.get_pos()
-                moves.append(Move(pos=move, soldier=soldier.get_pos(), finish=False, kill=kill))
+                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), kill=kill))
+                
+            else:
+                moves.append(Move(pos=move, soldier=soldier.get_pos()))
         
         return moves
 
