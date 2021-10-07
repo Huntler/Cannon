@@ -1,3 +1,4 @@
+from multiprocessing.spawn import freeze_support
 from stupid_engine.cannon.entities.player import PlayerType
 from threading import Thread
 from stupid_engine.backend.game import Game
@@ -63,3 +64,7 @@ class GameController(Thread):
         This method gently stops the thread be ending its loop.
         """
         self._running = False
+
+
+if __name__ == '__main__':
+    freeze_support()

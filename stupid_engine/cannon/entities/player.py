@@ -130,13 +130,3 @@ class Player:
         Returns the amount of soliders.
         """
         return len(self._soldiers.keys())
-    
-    def __hash__(self) -> int:
-        h = 0
-        # print(h, self._type, [_.get_pos() for _ in self.get_soldiers().values()])
-
-        for pos in self.get_soldiers().keys():
-            x, y = pos
-            h ^= self._zobrist[x][y]
-
-        return h

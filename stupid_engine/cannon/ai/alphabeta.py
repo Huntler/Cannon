@@ -73,9 +73,7 @@ class AlphaBeta(BaseAI):
             if self._refresh_tt:
                 self._tt = dict()
         
-        pstats.Stats(pr).sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
-        quit()
-
+        pstats.Stats(pr).sort_stats(pstats.SortKey.TIME).print_stats(10)
         return True
 
     def set_town_position(self, positions: List[Move]) -> Move:
@@ -114,6 +112,9 @@ class AlphaBeta(BaseAI):
 
         # if the maximum depth is reached, then return the best move
         if(depth == 0 or time_exceeded) :
+            if depth != 0:
+                print("\tReached depth: ", self._depth - depth)
+                
             moves = self._get_moves_sorted(player)
 
             if len(moves) == 0:

@@ -10,7 +10,6 @@ class MoveGenerator:
     def __init__(self) -> None:
         self._moves = []
 
-    @functools.lru_cache(maxsize=256)
     def generate_moves(self, player, enemy) -> List[Move]:
         self.refresh()
 
