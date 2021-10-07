@@ -1,3 +1,4 @@
+from stupid_engine.cannon.ai.move_generator import MoveGenerator
 from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.entities.figures import CannonFigure, CannonSoldier
 from stupid_engine.cannon.entities.player import Player, PlayerType
@@ -5,6 +6,7 @@ from typing import Dict, List, Tuple
 import random
 import functools
 from copy import copy
+from multiprocessing import Pool
 
 
 class CannonGame:
@@ -89,147 +91,6 @@ class CannonGame:
         value += (player.army_size() - enemy.army_size()) * weights[4]
         move._value = value
         return move
-    
-    @functools.lru_cache(maxsize=256)
-    def moves(self, player: Player, soldier: CannonSoldier) -> List[Move]:
-        """
-        This method calulated possible moves of the given soldier.
-        """
-
-        # get the opponent player
-        enemy = self._get_enemy_player(player)
-        moves = []
-
-        self._standard_moves(player, enemy, soldier, moves)
-        self._retreat_moves(player, enemy, soldier, moves)
-        self._cannon_moves(player, enemy, soldier, moves)
-                
-        return moves
-    
-    def _standard_moves(self, player, enemy, soldier, moves) -> None:
-        x, y = soldier.get_pos()
-
-        # determine the direction in which the current player is playing
-        dir = -1 if player.get_type() == PlayerType.LIGHT else +1
-
-        # create the basic movement moves: front_left, front, front_right
-        # this includes checking if a enemy soldier or the enemy town is placed 
-        # in this position. This move is then marked as kill / finishing move.
-        for move in [(x - 1, y + dir), (x, y + dir), (x + 1, y + dir)]:
-            if Move.out_of_bounds(move) or player.soldier_at(move):
-                continue
-
-            kill = enemy.soldier_at(move)
-            town = enemy.get_town().get_pos() == move
-
-            # kill is not interesting if the player can finish the game
-            if town:
-                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), finish=town))
-                continue
-
-            if kill:
-                kill = kill.get_pos()
-                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), kill=kill))
-
-            else:
-                moves.append(Move(pos=move, soldier=soldier.get_pos()))
-        
-        # create the capture / kill moves
-        for move in [(x - 1, y), (x + 1, y)]:
-            kill = enemy.soldier_at(move)
-            town = enemy.get_town().get_pos() == move
-
-            # kill is not interesting if the player can finish the game
-            if town:
-                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), finish=True))
-                continue
-
-            if kill:
-                kill = kill.get_pos()
-                moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), kill=kill))
-                
-            else:
-                moves.append(Move(pos=move, soldier=soldier.get_pos()))
-        
-        return moves
-
-    def _retreat_moves(self, player, enemy, soldier, moves) -> None:
-        x, y = soldier.get_pos()
-        dir = -1 if player.get_type() == PlayerType.LIGHT else +1
-
-        # retreat move if the soldier is threatened
-        # the possible moves are 2 places behind the soldier and two places left/right of that position
-        for threat in [(x - 1, y + dir), (x, y + dir), (x + 1, y + dir), (x - 1, y), (x + 1, y)]:
-            if enemy.soldier_at(threat):
-                # TODO: implement light of sight
-                for move in [(x - 2, y - 2 * dir), (x, y - 2 * dir), (x + 2, y - 2 * dir)]:
-                    if Move.out_of_bounds(move) or player.get_town().get_pos() == move:
-                        continue
-
-                    if not player.soldier_at(move) and not enemy.soldier_at(move):
-                        moves.append(Move(pos=move, soldier=soldier.get_pos(), retreat=True))
-        
-    def _cannon_moves(self, player, enemy, soldier, moves) -> None:
-        x, y = soldier.get_pos()
-        dir = -1 if player.get_type() == PlayerType.LIGHT else +1
-
-        # recognize a cannon and find possible moves for it
-        # check for 3 adjacent soldiers
-        # structure of the lists: 
-        # [soldiers needed for cannon; possible positions for shoots; 
-        #   free position for shoot; slide position]
-        cannon_cases = [
-            # orthogonal row, given soldier front
-            [[(x, y - dir), (x, y - 2 * dir)], [(x, y + 2 * dir), (x, y + 3 * dir)], (x, y + dir), (x, y - 3 * dir)],
-            # 3 in a orthogonal row, given soldier back
-            [[(x, y + dir), (x, y + 2 * dir)], [(x, y - 2 * dir), (x, y - 3 * dir)], (x, y - dir), (x, y + 3 * dir)],
-            # 3 in a diagonal row, given soldier front (right)
-            [[(x - 1, y - dir), (x - 2, y - 2 * dir)], [(x + 2, y + 2 * dir), (x + 3, y + 3 * dir)], (x + dir, y + dir), (x - 3, y - 3 * dir)],
-            # 3 in a diagonal row, given soldier back (right)
-            [[(x + 1, y + dir), (x + 2, y + 2 * dir)], [(x - 2, y - 2 * dir), (x - 3, y - 3 * dir)], (x - dir, y - dir), (x + 3, y + 3 * dir)],
-            # 3 in a diagonal row, given soldier back (left)
-            [[(x - 1, y + dir), (x - 2, y + 2 * dir)], [(x + 2, y - 2 * dir), (x + 3, y - 3 * dir)], (x + dir, y - dir), (x - 3, y + 3 * dir)],
-            # 3 in a diagonal row, given soldier front (left)
-            [[(x + 1, y - dir), (x + 2, y - 2 * dir)], [(x - 2, y + 2 * dir), (x - 3, y + 3 * dir)], (x - dir, y + dir), (x + 3, y - 3 * dir)]
-        ]
-
-        for structure, shots, free, slide in cannon_cases:
-            # check if there is a cannon structure
-            structure_exists = True
-            for pos in structure:
-                if Move.out_of_bounds(pos) or not player.soldier_at(pos):
-                    structure_exists = False
-                    break
-            
-            if not structure_exists:
-                continue
-            
-            # if the given place is empty
-            if not Move.out_of_bounds(slide) and not enemy.soldier_at(slide) and not player.soldier_at(slide) and player.get_town().get_pos() != slide and enemy.get_town().get_pos() != slide:
-                moves.append(Move(pos=slide, soldier=soldier.get_pos(), slide=True))
-            
-            # check if there is the free position in front available so the cannon can shoot
-            if Move.out_of_bounds(free) or enemy.soldier_at(free) or player.soldier_at(free):
-                continue
-
-            # add possible shot positions
-            for move in shots:
-                # if the shoot will hit a solider of this player, than skip
-                if Move.out_of_bounds(move) or player.soldier_at(move):
-                    break
-                
-                # if the shoot wil hit an enemy soldier, then mark this move as 
-                # shoot/kill and break
-                kill = enemy.soldier_at(move)
-                if kill:
-                    moves.append(Move(pos=move, soldier=soldier.get_pos(), kill=kill.get_pos(), shoot=True))
-                    break
-
-                # if the shoot will hit a town, then mark this as finishing move
-                town = enemy.get_town().get_pos()
-                if town == move:
-                    moves.insert(0, Move(pos=move, soldier=soldier.get_pos(), finish=True, shoot=True))
-                    break
 
     def execute(self, player: Player, move: Move, testing_only=False) -> None:
         """

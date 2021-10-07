@@ -25,6 +25,8 @@ class Player:
             self._init_positions(start_pos=(1, 8), end_pos=(9, 5))
         elif self._type == PlayerType.DARK:
             self._init_positions(start_pos=(0, 3), end_pos=(8, 0))
+        
+        self._zobrist = [[random.randint(0, 2**64 - 1) for _ in range(10)] for _ in range(10)]
 
     def _init_positions(self, start_pos: Tuple[int, int], end_pos: Tuple[int, int]) -> None:
         """
@@ -128,3 +130,13 @@ class Player:
         Returns the amount of soliders.
         """
         return len(self._soldiers.keys())
+    
+    def __hash__(self) -> int:
+        h = 0
+        # print(h, self._type, [_.get_pos() for _ in self.get_soldiers().values()])
+
+        for pos in self.get_soldiers().keys():
+            x, y = pos
+            h ^= self._zobrist[x][y]
+
+        return h
