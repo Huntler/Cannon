@@ -10,6 +10,7 @@
 
 
 """
+import math
 from stupid_engine.cannon.ai.move_generator import MoveGenerator
 from stupid_engine.cannon.entities.move import Move
 from stupid_engine.cannon.entities.cannon import CannonGame
@@ -20,9 +21,11 @@ import random
 import time
 from copy import deepcopy, copy
 import cProfile, pstats
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-whitegrid')
 
 
-VERBOSE = False
+VERBOSE = True
 
 
 class AlphaBeta(BaseAI):
@@ -41,12 +44,17 @@ class AlphaBeta(BaseAI):
         self._weights = weights
         self._refresh_tt = refresh_tt
 
-        # iterative deepening
+        # iterative deepening, if not time limit is given, then set a max of 10 minute
         self._time_start = 0
-        self._time_limit = time_limit
+        self._time_limit = time_limit if time_limit else 10*60
 
         # create the transposition table container
         self._tt = dict()
+
+        # create some statistics <3
+        self._moves_searched = 0
+        self._depth_per_search = []
+        self._mean_depth = lambda: sum(self._depth_per_search) / self._moves_searched
 
     def play_turn(self, state: Dict) -> bool:
         """
@@ -60,20 +68,51 @@ class AlphaBeta(BaseAI):
         with cProfile.Profile() as pr:
             # remember the start time for iterative deepening
             self._time_start = time.time()
-            _, move = self._algorithm(self._alpha, self._beta, self._depth, self._player, None)
-            if not move:
+            time_exceeded = time.time() - self._time_start > self._time_limit
+            extra_depth = 0
+            best_move = move = None
+            while not time_exceeded:
+                # safe the best move found so far and ingore the "best move" found on the current ply
+                # this ply could be interrupted cause the time has exceeded
+                best_move = move
+                _, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player, None)
+
+                # search deeper if the time has not exceeded yet
+                extra_depth += 1
+                time_exceeded = time.time() - self._time_start > self._time_limit
+
+            # if the best move is still none, then take the found move even it could be not the best
+            # but this is still better than nothing
+            if not best_move:
+                best_move = move
+                
+            # add statistics
+            self._moves_searched += 1
+            self._depth_per_search.append(self._depth + extra_depth -1)
+
+            if VERBOSE:
+                # the ply self._depth + extra_depth -1 contains the best_move the player will take
+                # -1 because we interrupt the search if the time exceeds
+                print()
+                print(self._player.get_type().upper())
+                print(f"\tThe player has searched {self._moves_searched} move so far")
+                print(f"\tThe average search depth was {self._mean_depth()} plys")
+                diff = self._depth_per_search[0] if self._moves_searched == 1 else self._depth_per_search[-1] - self._depth_per_search[-2]
+                print(f"\tThe player searched {diff} plys deeper than before")
+
+            if not best_move:
                 enemy = self._cannon._get_enemy_player(self._player)
                 self._cannon.end_game(enemy.get_type())
                 pr.print_stats()
                 return False
 
-            self._cannon.execute(self._player, move)
+            self._cannon.execute(self._player, best_move)
 
             # clean up the transposition table
             if self._refresh_tt:
                 self._tt = dict()
         
-        pstats.Stats(pr).sort_stats(pstats.SortKey.TIME).print_stats(10)
+        # pstats.Stats(pr).sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
         return True
 
     def set_town_position(self, positions: List[Move]) -> Move:
@@ -82,6 +121,17 @@ class AlphaBeta(BaseAI):
         """
         position = random.choice(positions)
         return position
+    
+    def show_statistics(self):
+        fig = plt.figure()
+        ax = plt.axes()
+        ax.plot(range(self._moves_searched), self._depth_per_search);
+
+        plt.title("Search depth per search")
+        plt.xlabel("search")
+        plt.ylabel("depth");
+
+        plt.show()
 
     def _get_moves(self, player) -> List[Move]:        
         return self._moves_generator.generate_moves(player, self._cannon._get_enemy_player(player))
@@ -99,44 +149,30 @@ class AlphaBeta(BaseAI):
         moves.sort(key=lambda m: m._value, reverse=True)
 
     def _algorithm(self, alpha: int, beta: int, depth: int, player: Player, move: Move) -> Tuple[int, Move]:
-        # get the current time to check if the search should end
-        if self._time_limit:
-            time_exceeded = time.time() - self._time_start > self._time_limit
-        else:
-            time_exceeded = False
-
         # execute the given move to search deeper
         if move is not None:
             self._cannon.execute(player, move, testing_only=True)
             player = self._cannon._get_enemy_player(player)
 
         # if the maximum depth is reached, then return the best move
-        if(depth == 0 or time_exceeded) :
-            if depth != 0:
-                print("\tReached depth: ", self._depth - depth)
-                
-            moves = self._get_moves_sorted(player)
+        # also, get the current time to check if the search should end
+        time_exceeded = time.time() - self._time_start > self._time_limit
+        if(depth == 0 or time_exceeded  ):
+            self._cannon.eval(player, move, self._weights)        
+            return move._value, move
 
-            if len(moves) == 0:
-                return 0, None
-
-            # because of move ordering, the first move is the best one
-            best_move = moves[0]
-            return best_move._value, best_move
+        moves = None
 
         # check if there is already a best move known, before running the search
         # this optimization uses the "transposition table" and the "zobrist hashing"
         tt_hash = self._cannon.hash(player.get_type())
         best_move = self._tt.get(tt_hash, None)
         if best_move is not None:
-            score, _ = self._algorithm(-1 * beta, -1 * alpha, depth - 1, player, best_move)
-            score *= -1
-            self._cannon.undo(player, best_move)
+            moves = [best_move] + self._get_moves(player)
+        else:
+            moves = self._get_moves(player)
 
-            return score, best_move
-
-        for move in self._get_moves(player):
-            move._value = self._cannon.eval(player, move, self._weights)
+        for move in moves:
             # do the recursion step
             score, _ = self._algorithm(-1 * beta, -1 * alpha, depth - 1, player, move)
             score *= -1
