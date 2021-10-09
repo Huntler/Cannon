@@ -87,10 +87,14 @@ class CannonGame:
         if move.is_retreat_move():
             value += weights[4]
         
-        # check for soldier around own town
+        # check for soldier around own town like the following figure
+        # .....
+        # .sss.
+        # .sts.
+        #--------
         tx, ty = player.get_town().get_pos()
-        d = -1 if player.get_type() == PlayerType.DARK else +1
-        for denfense_pos in [(tx - 1, ty + d), (tx, ty + d), (tx + 1, ty + d)]:
+        d = 1 if player.get_type() == PlayerType.DARK else -1
+        for denfense_pos in [(tx - 1, ty + d), (tx, ty + d), (tx + 1, ty + d), (tx - 1, ty), (tx + 1, ty)]:
             if player.soldier_at(denfense_pos):
                 value += 1 * weights[1]
 
