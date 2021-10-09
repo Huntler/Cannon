@@ -14,7 +14,11 @@ class MoveGenerator:
         self.refresh()
 
         for soldier in player.get_soldiers().values():
-           self._generate_moves(player, enemy, soldier)
+            self._generate_moves(player, enemy, soldier)
+
+            # force a end move
+            if len(self._moves) == 1 and self._moves[0].is_finish_move():
+                return self._moves
         
         return self._moves
        
