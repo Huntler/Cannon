@@ -24,10 +24,10 @@ else:
 
 
 # finish, shoot, kill, retreat, army size (per soldier diff) e.g.: [10, 5, 1, 2, 1]
-ab1 = lambda p, c: AlphaBeta(p, c, -math.inf, math.inf, 2, 15, [5, 5, 2, 3, 2, 1], False)
-ab2 = lambda p, c: AlphaBeta(p, c, -math.inf, math.inf, 2, 15, [5, 5, 2, 3, 2, 1], True)
+ab1 = lambda p, c: AlphaBeta(p, c, -math.inf, math.inf, 5, 2, 5, [100, 5, 2, 1, 2, 1], True)
+ab2 = lambda p, c: AlphaBeta(p, c, -math.inf, math.inf, 10, 2, 5, [100, 5, 2, 1, 2, 1], True)
 
-app.set_player(PlayerType.LIGHT, ab1)
-app.set_player(PlayerType.DARK, ab2)
+app.set_player(PlayerType.LIGHT, ab1) # plys: 8.22 # winner
+app.set_player(PlayerType.DARK, ab2) # plys: 7.98
 
 app.start_game()

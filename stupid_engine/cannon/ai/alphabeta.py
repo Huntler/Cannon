@@ -29,7 +29,7 @@ VERBOSE = True
 
 
 class AlphaBeta(BaseAI):
-    def __init__(self, player: Player, cannon: CannonGame, alpha: int, beta: int, max_depth: int, time_limit: int, weights: List[int], refresh_tt: bool = True) -> None:
+    def __init__(self, player: Player, cannon: CannonGame, alpha: int, beta: int, delta: int, max_depth: int, time_limit: int, weights: List[int], refresh_tt: bool = True) -> None:
         super().__init__(player, cannon)
 
         self._moves = None
@@ -38,6 +38,7 @@ class AlphaBeta(BaseAI):
         # get the initial alpha-beta window
         self._alpha = alpha
         self._beta = beta
+        self._delta = delta
 
         # get the depth and weight values
         self._depth = max_depth
@@ -75,7 +76,11 @@ class AlphaBeta(BaseAI):
                 # safe the best move found so far and ingore the "best move" found on the current ply
                 # this ply could be interrupted cause the time has exceeded
                 best_move = move
-                _, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player, None)
+                V, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player, None)
+
+                # set the search window for aspiration seach using (V - delta, V + delta)
+                # TODO: Fail high/low not implemented yet
+                # self._alpha, self._beta = (V - self._delta, V + self._delta)
 
                 # search deeper if the time has not exceeded yet
                 extra_depth += 1
@@ -98,7 +103,8 @@ class AlphaBeta(BaseAI):
                 print(f"\tThe player has searched {self._moves_searched} move so far")
                 print(f"\tThe average search depth was {self._mean_depth()} plys")
                 diff = self._depth_per_search[0] if self._moves_searched == 1 else self._depth_per_search[-1] - self._depth_per_search[-2]
-                print(f"\tThe player searched {diff} plys deeper than before")
+                print(f"\tThe player searched {self._depth + extra_depth -1} plys, {diff} plys deeper than before")
+                print(f"\tThe move's score is {V}")
 
             if not best_move:
                 enemy = self._cannon._get_enemy_player(self._player)
@@ -168,7 +174,7 @@ class AlphaBeta(BaseAI):
         tt_hash = self._cannon.hash(player.get_type())
         best_move = self._tt.get(tt_hash, None)
         if best_move is not None:
-            moves = [best_move] + self._get_moves(player)
+            moves = [best_move] + self._get_moves_sorted(player)
         else:
             moves = self._get_moves(player)
 
@@ -183,7 +189,7 @@ class AlphaBeta(BaseAI):
             if score >= beta:
                 # fail hard -> beta cut off
                 # this is the pruning part
-                return beta, move
+                return score, move
 
             if score > alpha:
                 alpha = score
