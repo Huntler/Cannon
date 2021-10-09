@@ -90,10 +90,9 @@ class CannonGame:
         # check for soldier around own town
         tx, ty = player.get_town().get_pos()
         d = -1 if player.get_type() == PlayerType.DARK else +1
-        denfense_counter = 0
         for denfense_pos in [(tx - 1, ty + d), (tx, ty + d), (tx + 1, ty + d)]:
             if player.soldier_at(denfense_pos):
-                denfense_pos += 1 * weights[1]
+                value += 1 * weights[1]
 
         # more soldiers is better 
         value += (player.army_size() - enemy.army_size()) * weights[5]
