@@ -34,7 +34,7 @@ class MoveGenerator:
         # create the basic movement moves: front_left, front, front_right
         # this includes checking if a enemy soldier or the enemy town is placed 
         # in this position. This move is then marked as kill / finishing move.
-        for move in [(x - 1, y + dir), (x, y + dir), (x + 1, y + dir)]:
+        for move in [(x, y + dir), (x - 1, y + dir), (x + 1, y + dir)]:
             if Move.out_of_bounds(move) or player.soldier_at(move):
                 continue
 
