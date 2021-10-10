@@ -10,8 +10,11 @@ class MoveGenerator:
     def __init__(self) -> None:
         self._moves = []
 
-    def generate_moves(self, player, enemy) -> List[Move]:
+    def generate_moves(self, player, enemy, soldier=None) -> List[Move]:
         self.refresh()
+        if soldier:
+            self._generate_moves(player, enemy, soldier)
+            return self._moves
 
         for soldier in player.get_soldiers().values():
             self._generate_moves(player, enemy, soldier)
@@ -24,7 +27,7 @@ class MoveGenerator:
        
     def _generate_moves(self, player, enemy, soldier) -> Move:
         # determine the direction in which the current player is playing
-        dir = -1 if player.get_type() == PlayerType.LIGHT else +1
+        d = -1 if player.get_type() == PlayerType.LIGHT else +1
         x, y = soldier.get_pos()
         
         #
@@ -34,7 +37,7 @@ class MoveGenerator:
         # create the basic movement moves: front_left, front, front_right
         # this includes checking if a enemy soldier or the enemy town is placed 
         # in this position. This move is then marked as kill / finishing move.
-        for move in [(x, y + dir), (x - 1, y + dir), (x + 1, y + dir)]:
+        for move in [(x, y + d), (x - 1, y + d), (x + 1, y + d)]:
             if Move.out_of_bounds(move) or player.soldier_at(move):
                 continue
 
@@ -79,17 +82,17 @@ class MoveGenerator:
         #   free position for shoot; slide position]
         cannon_cases = [
             # orthogonal row, given soldier front
-            [[(x, y - dir), (x, y - 2 * dir)], [(x, y + 2 * dir), (x, y + 3 * dir)], (x, y + dir), (x, y - 3 * dir)],
+            [[(x, y - d), (x, y - 2 * d)], [(x, y + 2 * d), (x, y + 3 * d)], (x, y + d), (x, y - 3 * d)],
             # 3 in a orthogonal row, given soldier back
-            [[(x, y + dir), (x, y + 2 * dir)], [(x, y - 2 * dir), (x, y - 3 * dir)], (x, y - dir), (x, y + 3 * dir)],
+            [[(x, y + d), (x, y + 2 * d)], [(x, y - 2 * d), (x, y - 3 * d)], (x, y - d), (x, y + 3 * d)],
             # 3 in a diagonal row, given soldier front (right)
-            [[(x - 1, y - dir), (x - 2, y - 2 * dir)], [(x + 2, y + 2 * dir), (x + 3, y + 3 * dir)], (x + dir, y + dir), (x - 3, y - 3 * dir)],
+            [[(x - 1, y - d), (x - 2, y - 2 * d)], [(x + 2, y + 2 * d), (x + 3, y + 3 * d)], (x + d, y + d), (x - 3, y - 3 * d)],
             # 3 in a diagonal row, given soldier back (right)
-            [[(x + 1, y + dir), (x + 2, y + 2 * dir)], [(x - 2, y - 2 * dir), (x - 3, y - 3 * dir)], (x - dir, y - dir), (x + 3, y + 3 * dir)],
+            [[(x + 1, y + d), (x + 2, y + 2 * d)], [(x - 2, y - 2 * d), (x - 3, y - 3 * d)], (x - d, y - d), (x + 3, y + 3 * d)],
             # 3 in a diagonal row, given soldier back (left)
-            [[(x - 1, y + dir), (x - 2, y + 2 * dir)], [(x + 2, y - 2 * dir), (x + 3, y - 3 * dir)], (x + dir, y - dir), (x - 3, y + 3 * dir)],
+            [[(x - 1, y + d), (x - 2, y + 2 * d)], [(x + 2, y - 2 * d), (x + 3, y - 3 * d)], (x + d, y - d), (x - 3, y + 3 * d)],
             # 3 in a diagonal row, given soldier front (left)
-            [[(x + 1, y - dir), (x + 2, y - 2 * dir)], [(x - 2, y + 2 * dir), (x - 3, y + 3 * dir)], (x - dir, y + dir), (x + 3, y - 3 * dir)]
+            [[(x + 1, y - d), (x + 2, y - 2 * d)], [(x - 2, y + 2 * d), (x - 3, y + 3 * d)], (x - d, y + d), (x + 3, y - 3 * d)]
         ]
 
         for structure, shots, free, slide in cannon_cases:
@@ -102,6 +105,10 @@ class MoveGenerator:
             
             if not structure_exists:
                 continue
+
+            # if the given place is empty
+            if not Move.out_of_bounds(slide) and not enemy.soldier_at(slide) and not player.soldier_at(slide) and player.get_town().get_pos() != slide and enemy.get_town().get_pos() != slide:
+                self._moves.append(Move(pos=slide, soldier=soldier.get_pos(), slide=True))
             
             # check if there is the free position in front available so the cannon can shoot
             if Move.out_of_bounds(free) or enemy.soldier_at(free) or player.soldier_at(free):
@@ -129,10 +136,6 @@ class MoveGenerator:
                 if kill:
                     self._moves.append(Move(pos=shot, soldier=soldier.get_pos(), kill=kill.get_pos(), shoot=True))
                     break
-
-            # if the given place is empty
-            if not Move.out_of_bounds(slide) and not enemy.soldier_at(slide) and not player.soldier_at(slide) and player.get_town().get_pos() != slide and enemy.get_town().get_pos() != slide:
-                self._moves.append(Move(pos=slide, soldier=soldier.get_pos(), slide=True))
             
 
         #
@@ -141,11 +144,16 @@ class MoveGenerator:
 
         # retreat move if the soldier is threatened
         # the possible moves are 2 places behind the soldier and two places left/right of that position
-        for threat in [(x - 1, y + dir), (x, y + dir), (x + 1, y + dir), (x - 1, y), (x + 1, y)]:
+        retreat_pos = [
+            [(x - 2, y - 2 * d), (x - 1, y - d)], 
+            [(x, y - 2 * d), (x, y - d)], 
+            [(x + 2, y - 2 * d), (x + 1, y - d)]
+        ]
+        for threat in [(x - 1, y + d), (x, y + d), (x + 1, y + d), (x - 1, y), (x + 1, y)]:
             if enemy.soldier_at(threat):
                 # TODO: implement light of sight
-                for move in [(x - 2, y - 2 * dir), (x, y - 2 * dir), (x + 2, y - 2 * dir)]:
-                    if Move.out_of_bounds(move) or player.get_town().get_pos() == move:
+                for move, free in retreat_pos:
+                    if Move.out_of_bounds(move) or player.get_town().get_pos() == move or player.soldier_at(free) or enemy.soldier_at(free):
                         continue
 
                     if not player.soldier_at(move) and not enemy.soldier_at(move):

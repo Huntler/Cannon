@@ -34,16 +34,14 @@ class Game(Game):
         self._callbacks = dict()
         self._running = False
 
-        self._header = Text("StupidEngine: Cannon", self._screen, self._draw_area, (0, 11))
-        self._sprites["header"] = [self._header]
+        py.display.set_caption("StupidEngine: Cannon")
     
     def show_winner(self, player_type: PlayerType) -> None:
         """
         This method shows the winner on screen.
         """
         print(f"Player '{player_type}' has won the game.")
-        # print out the winner into the game's header
-        self._header.set_text(f"Player {player_type} won the game")
+        py.display.set_caption("Player '{player_type}' has won the game")
     
     def on_click(self, event_type, sprite: Sprite) -> None:
         """
@@ -64,7 +62,7 @@ class Game(Game):
         self._board.draw()
 
         # draw the current game state
-        for name in ["towns", "soldiers", "moves", "header"]:
+        for name in ["towns", "soldiers", "moves"]:
             if name in self._sprites.keys():
                 for sprite in self._sprites[name]:
                     sprite.draw()

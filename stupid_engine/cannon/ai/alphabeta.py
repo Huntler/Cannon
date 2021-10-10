@@ -21,15 +21,13 @@ import random
 import time
 from copy import deepcopy, copy
 import cProfile, pstats
-import matplotlib.pyplot as plt
-plt.style.use('seaborn-whitegrid')
 
 
 VERBOSE = True
 
 
 class AlphaBeta(BaseAI):
-    def __init__(self, player: Player, cannon: CannonGame, alpha: int, beta: int, delta: int, max_depth: int, time_limit: int, weights: List[int], refresh_tt: bool = True) -> None:
+    def __init__(self, player: Player, cannon: CannonGame, alpha: int, beta: int, depth: int, time_limit: int, weights: List[int], refresh_tt: bool = True) -> None:
         super().__init__(player, cannon)
 
         self._moves = None
@@ -38,10 +36,9 @@ class AlphaBeta(BaseAI):
         # get the initial alpha-beta window
         self._alpha = alpha
         self._beta = beta
-        self._delta = delta
 
         # get the depth and weight values
-        self._depth = max_depth
+        self._depth = depth
         self._weights = weights
         self._refresh_tt = refresh_tt
 
@@ -76,14 +73,11 @@ class AlphaBeta(BaseAI):
                 # safe the best move found so far and ingore the "best move" found on the current ply
                 # this ply could be interrupted cause the time has exceeded
                 best_move = move
-                V, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player, None)
-
-                # set the search window for aspiration seach using (V - delta, V + delta)
-                # TODO: Fail high/low not implemented yet
-                # self._alpha, self._beta = (V - self._delta, V + self._delta)
+                _, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player, None)
 
                 # search deeper if the time has not exceeded yet
                 extra_depth += 1
+
                 time_exceeded = time.time() - self._time_start > self._time_limit
 
             # if the best move is still none, then take the found move even it could be not the best
@@ -104,7 +98,7 @@ class AlphaBeta(BaseAI):
                 print(f"\tThe average search depth was {self._mean_depth()} plys")
                 diff = self._depth_per_search[0] if self._moves_searched == 1 else self._depth_per_search[-1] - self._depth_per_search[-2]
                 print(f"\tThe player searched {self._depth + extra_depth -1} plys, {diff} plys deeper than before")
-                print(f"\tThe move's score is {V}")
+                print(f"\tThe move's score is {_}")
 
             if not best_move:
                 enemy = self._cannon._get_enemy_player(self._player)
@@ -127,17 +121,6 @@ class AlphaBeta(BaseAI):
         """
         position = random.choice(positions)
         return position
-    
-    def show_statistics(self):
-        fig = plt.figure()
-        ax = plt.axes()
-        ax.plot(range(self._moves_searched), self._depth_per_search);
-
-        plt.title("Search depth per search")
-        plt.xlabel("search")
-        plt.ylabel("depth");
-
-        plt.show()
 
     def _get_moves(self, player) -> List[Move]:        
         return self._moves_generator.generate_moves(player, self._cannon._get_enemy_player(player))
@@ -163,7 +146,7 @@ class AlphaBeta(BaseAI):
         # if the maximum depth is reached, then return the best move
         # also, get the current time to check if the search should end
         time_exceeded = time.time() - self._time_start > self._time_limit
-        if(depth == 0 or time_exceeded  ):
+        if(depth == 0 or time_exceeded):
             self._cannon.eval(player, move, self._weights)        
             return move._value, move
 
@@ -174,6 +157,8 @@ class AlphaBeta(BaseAI):
         tt_hash = self._cannon.hash(player.get_type())
         best_move = self._tt.get(tt_hash, None)
         if best_move is not None:
+            # loading the best move known and set it to the beginning of the list of
+            # avialable moves
             moves = [best_move] + self._get_moves_sorted(player)
         else:
             moves = self._get_moves(player)

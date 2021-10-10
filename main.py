@@ -14,20 +14,38 @@ FULLSCREEN = False
 fullscreen_size = (2560, 1600)
 fullscreen_flags = py.FULLSCREEN | py.HWSURFACE | py.DOUBLEBUF
 
-windowed_size = (500, 500)
-windowed_flags = 0
+windowed_size = (700, 700)
+windowed_flags = py.SCALED
 
 if FULLSCREEN:
     app = Application(window_size=fullscreen_size, theme=Theme.DEFAULT, flags=fullscreen_flags)
 else:
     app = Application(window_size=windowed_size, theme=Theme.DEFAULT, flags=windowed_flags)
 
+# weights are defined by the following features
+# finish, soldiders defending town, shoot, kill, retreat, army size difference
+light = lambda p, c: AlphaBeta(
+    player=p, 
+    cannon=c, 
+    alpha=-math.inf, 
+    beta=math.inf, 
+    depth=2, 
+    time_limit=15, 
+    weights=[100, 5, 2, 1, 2, 1], 
+    refresh_tt=True)
+dark = lambda p, c: AlphaBeta(
+    player=p, 
+    cannon=c, 
+    alpha=-math.inf, 
+    beta=math.inf, 
+    depth=2, 
+    time_limit=15, 
+    weights=[100, 5, 2, 1, 2, 1], 
+    refresh_tt=True)
 
-# finish, shoot, kill, retreat, army size (per soldier diff) e.g.: [10, 5, 1, 2, 1]
-ab1 = lambda p, c: AlphaBeta(p, c, -math.inf, math.inf, 5, 2, 5, [100, 5, 2, 1, 2, 1], True)
-ab2 = lambda p, c: AlphaBeta(p, c, -math.inf, math.inf, 10, 2, 5, [100, 5, 2, 1, 2, 1], True)
+app.set_player(PlayerType.LIGHT, light) # plys: 8.22 # winner
+app.set_player(PlayerType.DARK, Human) # plys: 7.98
 
-app.set_player(PlayerType.LIGHT, ab1) # plys: 8.22 # winner
-app.set_player(PlayerType.DARK, ab2) # plys: 7.98
+# without search window: 6.1-6.2 plys. 9 plys in the end.
 
 app.start_game()

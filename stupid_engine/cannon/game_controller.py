@@ -1,5 +1,6 @@
 import stupid_engine
 from stupid_engine.backend.controller import GameController
+from stupid_engine.cannon.ai.move_generator import MoveGenerator
 from stupid_engine.cannon.theme import Theme
 from typing import Tuple
 from stupid_engine.cannon.visuals.game import Game
@@ -21,6 +22,8 @@ class Application(GameController):
         self._cannon = CannonGame(self._p_light, self._p_dark)
         self._active = self._p_dark
 
+        self._move_generator = MoveGenerator()
+
         # set the visual settings
         self._window_size = window_size
         self._theme = theme
@@ -35,7 +38,8 @@ class Application(GameController):
         """
         draw_size = (800, 800)
         if draw_size > self._window_size:
-            draw_size = self._window_size
+            w, h = self._window_size
+            draw_size = (int(w * 0.6), int(h * 0.6))
             
         self._game = Game(window_size=self._window_size, draw_area=draw_size, theme=self._theme, flags=self._flags)
         self._game.set_board_state(self._cannon.get_state(), self._active.get_type())
@@ -79,9 +83,10 @@ class Application(GameController):
         actions in this case.
         """
         # get all possible moves available and put those hints into the state
+        enemy = self._cannon._get_enemy_player(self._active)
         soldier = self._active.soldier_at(pos)
         self._active.select_soldier(soldier)
-        moves = self._cannon.moves(self._active, soldier)
+        moves = self._move_generator.generate_moves(self._active, enemy, soldier)
 
         state = self._cannon.get_state()
         state["moves"] = moves
@@ -95,8 +100,9 @@ class Application(GameController):
         This method is called if a position for movement was clicked. Then a
         previous selected soldier is moved to the provided position.
         """
+        enemy = self._cannon._get_enemy_player(self._active)
         soldier = self._active.get_selected_soldier()
-        moves = self._cannon.moves(self._active, soldier)
+        moves = self._move_generator.generate_moves(self._active, enemy, soldier)
 
         for move in moves:
             if move.get_pos() == pos:
