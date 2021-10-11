@@ -98,18 +98,24 @@ class CannonGame:
         
         # moving an enemy that is closer to the town should reward
         # closer to a town is more rewarded
+        # check if the soldier is able to reach the enemies town
+        # otherwise, the soldier should not be rewarded to be close to the enemies town
         enemy_town_x, enemy_town_y = enemy.get_town().get_pos()
         move_x, move_y = move.get_pos()
-        enemy_town_distance_func = lambda x, y: math.pow(enemy_town_x - x, 2) + math.pow(enemy_town_y - y, 2)
-        enemy_town_distance = math.sqrt(enemy_town_distance_func(move_x, move_y))
-        enemy_town_distance = round(enemy_town_distance)
-        value += (10 - enemy_town_distance) * weights[0]
+        
+        dir_x = 1 if enemy_town_x > move_x else -1
+        vec_x = abs(enemy_town_y - move_y) * dir_x
+        if move_x + vec_x - enemy_town_x > -2:
+            enemy_town_distance_func = lambda x, y: math.pow(enemy_town_x - x, 2) + math.pow(enemy_town_y - y, 2)
+            enemy_town_distance = math.sqrt(enemy_town_distance_func(move_x, move_y))
+            enemy_town_distance = round(enemy_town_distance)
+            value += (10 - enemy_town_distance) * weights[0]
 
-        # the move that results in a closer distance to the enmies town should be rewarded as well
-        origin_x, origin_y = move.get_original_pos()
-        delta_enemy_town_distance = math.sqrt(enemy_town_distance_func(origin_x, origin_y))
-        delta_enemy_town_distance = enemy_town_distance - round(delta_enemy_town_distance)
-        value += delta_enemy_town_distance * weights[1]
+            # the move that results in a closer distance to the enmies town should be rewarded as well
+            origin_x, origin_y = move.get_original_pos()
+            delta_enemy_town_distance = math.sqrt(enemy_town_distance_func(origin_x, origin_y))
+            delta_enemy_town_distance = enemy_town_distance - round(delta_enemy_town_distance)
+            value += delta_enemy_town_distance * weights[1]
 
         # more soldiers is better 
         value += (player.army_size() - enemy.army_size()) * weights[6]

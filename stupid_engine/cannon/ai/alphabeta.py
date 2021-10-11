@@ -105,9 +105,12 @@ class AlphaBeta(BaseAI):
 
             if not best_move:
                 enemy = self._cannon._get_enemy_player(self._player)
-                self._cannon.end_game(enemy.get_type())
-                pr.print_stats()
-                return False
+                moves = self._moves_generator.generate_moves(self._player, enemy)
+                if len(moves) == 0:
+                    self._cannon.end_game(enemy.get_type())
+                    return False
+                
+                best_move = moves[0]
 
             self._cannon.execute(self._player, best_move)
 
