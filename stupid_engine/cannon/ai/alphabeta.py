@@ -77,8 +77,11 @@ class AlphaBeta(BaseAI):
 
                 # search deeper if the time has not exceeded yet
                 extra_depth += 1
-
                 time_exceeded = time.time() - self._time_start > self._time_limit
+
+                if move and move.is_finish_move():
+                    best_move = move
+                    break
 
             # if the best move is still none, then take the found move even it could be not the best
             # but this is still better than nothing
@@ -138,17 +141,18 @@ class AlphaBeta(BaseAI):
         moves.sort(key=lambda m: m._value, reverse=True)
 
     def _algorithm(self, alpha: int, beta: int, depth: int, player: Player, move: Move) -> Tuple[int, Move]:
-        # execute the given move to search deeper
-        if move is not None:
-            self._cannon.execute(player, move, testing_only=True)
-            player = self._cannon._get_enemy_player(player)
-
         # if the maximum depth is reached, then return the best move
         # also, get the current time to check if the search should end
         time_exceeded = time.time() - self._time_start > self._time_limit
         if(depth == 0 or time_exceeded):
-            self._cannon.eval(player, move, self._weights)        
-            return move._value, move
+            self._cannon.eval(self._cannon._get_enemy_player(player), move, self._weights)
+            self._cannon.execute(player, move, testing_only=True)
+            return move._value, None
+
+        # execute the given move to search deeper
+        if move is not None:
+            self._cannon.execute(player, move, testing_only=True)
+            player = self._cannon._get_enemy_player(player)
 
         moves = None
 
@@ -164,6 +168,13 @@ class AlphaBeta(BaseAI):
             moves = self._get_moves(player)
 
         for move in moves:
+            # if there is a fnishing move, do a hard break
+            # and force the AI to play into this direction
+            if move.is_finish_move():
+                alpha = math.inf
+                best_move = move
+                break
+
             # do the recursion step
             score, _ = self._algorithm(-1 * beta, -1 * alpha, depth - 1, player, move)
             score *= -1
