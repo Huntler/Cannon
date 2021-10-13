@@ -27,7 +27,8 @@ VERBOSE = True
 
 
 class AlphaBeta(BaseAI):
-    def __init__(self, player: Player, cannon: CannonGame, alpha: int, beta: int, depth: int, time_limit: int, weights: List[int], refresh_tt: bool = True) -> None:
+    def __init__(self, player: Player, cannon: CannonGame, alpha: int, beta: int, depth: int, 
+                    time_limit: int, weights: List[int], refresh_tt: bool = True, always_sort: bool = False) -> None:
         super().__init__(player, cannon)
 
         self._moves = None
@@ -41,6 +42,7 @@ class AlphaBeta(BaseAI):
         self._depth = depth
         self._weights = weights
         self._refresh_tt = refresh_tt
+        self._always_sort = always_sort
 
         # iterative deepening, if not time limit is given, then set a max of 10 minute
         self._time_start = 0
@@ -73,7 +75,7 @@ class AlphaBeta(BaseAI):
                 # safe the best move found so far and ingore the "best move" found on the current ply
                 # this ply could be interrupted cause the time has exceeded
                 best_move = move
-                _, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player)
+                score, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player)
 
                 # search deeper if the time has not exceeded yet
                 # increasing depth by two, to avoid the odd/even affect
@@ -102,7 +104,7 @@ class AlphaBeta(BaseAI):
                 print(f"\tThe average search depth was {self._mean_depth()} plys")
                 diff = self._depth_per_search[0] if self._moves_searched == 1 else self._depth_per_search[-1] - self._depth_per_search[-2]
                 print(f"\tThe player searched {self._depth + extra_depth -2} plys, {diff} plys deeper than before")
-                print(f"\tThe move's score is {_}")
+                print(f"\tThe move's score is {score}")
 
             if not best_move:
                 enemy = self._cannon._get_enemy_player(self._player)
@@ -132,7 +134,10 @@ class AlphaBeta(BaseAI):
     def _get_moves(self, player) -> List[Move]: 
         """
         Generates all moves for each soldier of the current player given as an argument.
-        """       
+        """
+        if self._always_sort:
+            return self._get_moves_sorted(player)
+
         return self._moves_generator.generate_moves(player, self._cannon._get_enemy_player(player))
 
     def _get_moves_sorted(self, player) -> List[Move]:
@@ -140,10 +145,10 @@ class AlphaBeta(BaseAI):
         Generates all moves for each soldier of the current player given as an argument.
         Also each move is evaluated and afterwards the list of moves is sorted by their values.
         """
-        moves = self._get_moves(player)
+        moves = self._moves_generator.generate_moves(player, self._cannon._get_enemy_player(player))
 
         for m in moves:
-            score = self._cannon.eval(player, m, self._weights)
+            score = self._eval(player, m)
             m.set_value(score)
 
         self._sort_moves(moves)
@@ -155,6 +160,9 @@ class AlphaBeta(BaseAI):
         method so profiling the code is easier.
         """
         moves.sort(key=lambda m: m._value, reverse=True)
+    
+    def _eval(self, player: Player, move: Move) -> int:
+        return self._cannon.eval(player, move, self._weights)
 
     def _algorithm(self, alpha: int, beta: int, depth: int, player: Player) -> Tuple[int, Move]:
         """
@@ -162,12 +170,12 @@ class AlphaBeta(BaseAI):
         and a Transposition Table.
         """
         time_exceeded = time.time() - self._time_start > self._time_limit
-        if time_exceeded:
-            return math.inf, None
+        # if time_exceeded:
+        #     return math.inf, None
 
         # if the maximum depth is reached, then return the best move
         # also, get the current time to check if the search should end
-        if(depth == 0):
+        if(depth == 0 or time_exceeded):
             score = self._quiesce(alpha, beta, player)
             return score, None
 
@@ -182,15 +190,20 @@ class AlphaBeta(BaseAI):
         if best_move is not None:
             # loading the best move known and set it to the beginning of the list of
             # avialable moves
-            moves = [best_move] + self._get_moves_sorted(player)
+            moves = [best_move] + self._get_moves(player)
         else:
-            moves = self._get_moves_sorted(player)
+            moves = self._get_moves(player)
 
         for move in moves:
             # if there is a fnishing move, do a hard break
             # and force the AI to play into this direction
             if move.is_finish_move():
-                alpha = move._value
+                best_score = math.inf # move.get_score
+                if not best_score:
+                    score = self._eval(player, move)
+                    move.set_value(score)
+                    best_score = score
+
                 best_move = move
                 break
 
@@ -223,12 +236,15 @@ class AlphaBeta(BaseAI):
 
             self._tt[tt_hash] = deepcopy(best_move)
 
-        return alpha, best_move
+        return best_score, best_move
     
     def _quiesce(self, alpha: int, beta: int, player: Player) -> int:
-        moves = self._get_moves_sorted(player)
+        moves = self._get_moves(player)
         for move in moves:
             score = move.get_value()
+            if not score:
+                score = self._eval(player, move)
+                move.set_value(score)
         
             if score >= beta:
                 return beta

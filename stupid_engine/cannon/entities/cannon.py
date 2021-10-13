@@ -93,7 +93,7 @@ class CannonGame:
         tx, ty = player.get_town().get_pos()
         d = 1 if player.get_type() == PlayerType.DARK else -1
         for denfense_pos in [(tx - 1, ty + d), (tx, ty + d), (tx + 1, ty + d), (tx - 1, ty), (tx + 1, ty)]:
-            if denfense_pos == move.get_pos():
+            if denfense_pos == move.get_pos() or player.soldier_at(denfense_pos):
                 value += 1 * weights[3]
         
         # moving an enemy that is closer to the town should reward
@@ -140,6 +140,7 @@ class CannonGame:
 
             if not testing_only:
                 print(f"{player.get_type()}: {soldier.get_pos()} -> {move.get_pos()}, {msg}!")
+                player.move_soldier(move)  
                 self.end_game(player.get_type())
 
         # remove the enemy soldier if the move is a shoot

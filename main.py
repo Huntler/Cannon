@@ -23,14 +23,14 @@ else:
     app = Application(window_size=windowed_size, theme=Theme.DEFAULT, flags=windowed_flags)
 
 # weights are defined by the following features
-# - distance of soldier to enemy town
-# - delta distance of soldier to enemy town
-# - captur enemy town
-# - defense wall infront of own town
-# - retreat if threatened
-# - shoot at something
-# - difference in army size
-# - kill a soldier
+# 0 distance of soldier to enemy town
+# 1 delta distance of soldier to enemy town
+# 2 captur enemy town
+# 3 defense wall infront of own town
+# 4 retreat if threatened
+# 5 shoot at something
+# 6 difference in army size
+# 7 kill a soldier
 
 light = lambda p, c: AlphaBeta(
     player=p, 
@@ -38,18 +38,20 @@ light = lambda p, c: AlphaBeta(
     alpha=-math.inf, 
     beta=math.inf, 
     depth=2, 
-    time_limit=2, 
-    weights=[1, 2, 100, 5, 6, 25, 1, 0], 
-    refresh_tt=True)
+    time_limit=4, 
+    weights=[0, 1, 5, 2, 2, 3, 1, 0], # [1, 2, 100, 5, 6, 25, 1, 0] 
+    refresh_tt=True,
+    always_sort=True)
 dark = lambda p, c: AlphaBeta(
     player=p, 
     cannon=c, 
     alpha=-math.inf, 
     beta=math.inf, 
     depth=2, 
-    time_limit=2, 
-    weights=[0, 0, 5, 1, 2, 1, 1, 0], 
-    refresh_tt=True)
+    time_limit=4, 
+    weights=[1, 1, 5, 3, 2, 3, 1, 0], 
+    refresh_tt=True,
+    always_sort=True)
 
 app.set_player(PlayerType.LIGHT, light) # plys: 8.22 # winner
 app.set_player(PlayerType.DARK, dark) # plys: 7.98
