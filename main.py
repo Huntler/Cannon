@@ -38,8 +38,8 @@ light = lambda p, c: AlphaBeta(
     alpha=-math.inf, 
     beta=math.inf, 
     depth=2, 
-    time_limit=5, 
-    weights=[1, 2, 100, 5, 6, 5, 1, 0], 
+    time_limit=2, 
+    weights=[1, 2, 100, 5, 6, 25, 1, 0], 
     refresh_tt=True)
 dark = lambda p, c: AlphaBeta(
     player=p, 
@@ -47,8 +47,8 @@ dark = lambda p, c: AlphaBeta(
     alpha=-math.inf, 
     beta=math.inf, 
     depth=2, 
-    time_limit=5, 
-    weights=[1, 2, 100, 5, 3, 5, 3, 0], 
+    time_limit=2, 
+    weights=[0, 0, 5, 1, 2, 1, 1, 0], 
     refresh_tt=True)
 
 app.set_player(PlayerType.LIGHT, light) # plys: 8.22 # winner

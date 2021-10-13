@@ -73,10 +73,11 @@ class AlphaBeta(BaseAI):
                 # safe the best move found so far and ingore the "best move" found on the current ply
                 # this ply could be interrupted cause the time has exceeded
                 best_move = move
-                _, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player, None)
+                _, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player)
 
                 # search deeper if the time has not exceeded yet
-                extra_depth += 1
+                # increasing depth by two, to avoid the odd/even affect
+                extra_depth += 2
                 time_exceeded = time.time() - self._time_start > self._time_limit
 
                 if move and move.is_finish_move():
@@ -100,7 +101,7 @@ class AlphaBeta(BaseAI):
                 print(f"\tThe player has searched {self._moves_searched} move so far")
                 print(f"\tThe average search depth was {self._mean_depth()} plys")
                 diff = self._depth_per_search[0] if self._moves_searched == 1 else self._depth_per_search[-1] - self._depth_per_search[-2]
-                print(f"\tThe player searched {self._depth + extra_depth -1} plys, {diff} plys deeper than before")
+                print(f"\tThe player searched {self._depth + extra_depth -2} plys, {diff} plys deeper than before")
                 print(f"\tThe move's score is {_}")
 
             if not best_move:
@@ -128,35 +129,50 @@ class AlphaBeta(BaseAI):
         position = random.choice(positions)
         return position
 
-    def _get_moves(self, player) -> List[Move]:        
+    def _get_moves(self, player) -> List[Move]: 
+        """
+        Generates all moves for each soldier of the current player given as an argument.
+        """       
         return self._moves_generator.generate_moves(player, self._cannon._get_enemy_player(player))
 
     def _get_moves_sorted(self, player) -> List[Move]:
+        """
+        Generates all moves for each soldier of the current player given as an argument.
+        Also each move is evaluated and afterwards the list of moves is sorted by their values.
+        """
         moves = self._get_moves(player)
 
         for m in moves:
-            self._cannon.eval(player, m, self._weights)
+            score = self._cannon.eval(player, m, self._weights)
+            m.set_value(score)
 
         self._sort_moves(moves)
         return moves
 
     def _sort_moves(self, moves: List[Move]):
+        """
+        Simple method for sorting a list of moves. This single line is put into an extra 
+        method so profiling the code is easier.
+        """
         moves.sort(key=lambda m: m._value, reverse=True)
 
-    def _algorithm(self, alpha: int, beta: int, depth: int, player: Player, move: Move) -> Tuple[int, Move]:
+    def _algorithm(self, alpha: int, beta: int, depth: int, player: Player) -> Tuple[int, Move]:
+        """
+        The algorithm calcualtes the best move using the Alpha Beta algorithm combined with Iterative Deepening
+        and a Transposition Table.
+        """
+        time_exceeded = time.time() - self._time_start > self._time_limit
+        if time_exceeded:
+            return math.inf, None
+
         # if the maximum depth is reached, then return the best move
         # also, get the current time to check if the search should end
-        time_exceeded = time.time() - self._time_start > self._time_limit
-        if(depth == 0 or time_exceeded):
-            self._cannon.eval(self._cannon._get_enemy_player(player), move, self._weights)
-            self._cannon.execute(player, move, testing_only=True)
-            return move._value, None
+        if(depth == 0):
+            score = self._quiesce(alpha, beta, player)
+            return score, None
 
-        # execute the given move to search deeper
-        if move is not None:
-            self._cannon.execute(player, move, testing_only=True)
-            player = self._cannon._get_enemy_player(player)
-
+        # create a best score for a fail soft
+        best_score = -math.inf
         moves = None
 
         # check if there is already a best move known, before running the search
@@ -168,30 +184,35 @@ class AlphaBeta(BaseAI):
             # avialable moves
             moves = [best_move] + self._get_moves_sorted(player)
         else:
-            moves = self._get_moves(player)
+            moves = self._get_moves_sorted(player)
 
         for move in moves:
             # if there is a fnishing move, do a hard break
             # and force the AI to play into this direction
             if move.is_finish_move():
-                alpha = math.inf
+                alpha = move._value
                 best_move = move
                 break
 
+            self._cannon.execute(player, move, testing_only=True)
+            enemy = self._cannon._get_enemy_player(player)
             # do the recursion step
-            score, _ = self._algorithm(-1 * beta, -1 * alpha, depth - 1, player, move)
+            score, _ = self._algorithm(-1 * beta, -1 * alpha, depth - 1, enemy)
             score *= -1
 
             # undo the recursion step
             self._cannon.undo(player, move)
 
             if score >= beta:
-                # fail hard -> beta cut off
+                # fail soft -> beta cut off
                 # this is the pruning part
                 return score, move
 
-            if score > alpha:
-                alpha = score
+            if score > best_score:
+                best_score = score
+                if score > alpha:
+                    alpha = score
+
                 # save the best move so far
                 best_move = move
         
@@ -203,3 +224,15 @@ class AlphaBeta(BaseAI):
             self._tt[tt_hash] = deepcopy(best_move)
 
         return alpha, best_move
+    
+    def _quiesce(self, alpha: int, beta: int, player: Player) -> int:
+        moves = self._get_moves_sorted(player)
+        for move in moves:
+            score = move.get_value()
+        
+            if score >= beta:
+                return beta
+            if alpha < score:
+                alpha = score
+        
+        return alpha

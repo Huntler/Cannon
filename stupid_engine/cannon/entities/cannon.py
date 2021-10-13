@@ -60,7 +60,7 @@ class CannonGame:
 
         return hash     
 
-    def eval(self, player: Player, move: Move, weights: List[int]) -> None:
+    def eval(self, player: Player, move: Move, weights: List[int]) -> int:
         """
         This method is used to evaluate a move made by the given player. Features 
         considerd in this function are:
@@ -85,7 +85,7 @@ class CannonGame:
         if move.is_retreat_move():
             value += weights[4]
         
-        # check for soldier around own town like the following figure
+        # check if the move adds a soldier to the defense wall
         # .....
         # .sss.
         # .sts.
@@ -93,7 +93,7 @@ class CannonGame:
         tx, ty = player.get_town().get_pos()
         d = 1 if player.get_type() == PlayerType.DARK else -1
         for denfense_pos in [(tx - 1, ty + d), (tx, ty + d), (tx + 1, ty + d), (tx - 1, ty), (tx + 1, ty)]:
-            if player.soldier_at(denfense_pos):
+            if denfense_pos == move.get_pos():
                 value += 1 * weights[3]
         
         # moving an enemy that is closer to the town should reward
@@ -118,9 +118,10 @@ class CannonGame:
             value += delta_enemy_town_distance * weights[1]
 
         # more soldiers is better 
-        value += (player.army_size() - enemy.army_size()) * weights[6]
-        move._value = value
-        return move
+        kill = 1 if move.is_kill_move() else 0
+        value += (player.army_size() - (enemy.army_size() - kill)) * weights[6]
+
+        return value
 
     def execute(self, player: Player, move: Move, testing_only=False) -> None:
         """
