@@ -82,17 +82,17 @@ class MoveGenerator:
         #   free position for shoot; slide position]
         cannon_cases = [
             # orthogonal row, given soldier front
-            [[(x, y - d), (x, y - 2 * d)], [(x, y + 2 * d), (x, y + 3 * d)], (x, y + d), (x, y - 3 * d)],
+            [[(x, y - 1), (x, y - 2)], [(x, y + 2), (x, y + 3)], (x, y + 1), (x, y - 3)],
             # 3 in a orthogonal row, given soldier back
-            [[(x, y + d), (x, y + 2 * d)], [(x, y - 2 * d), (x, y - 3 * d)], (x, y - d), (x, y + 3 * d)],
+            [[(x, y + 1), (x, y + 2)], [(x, y - 2), (x, y - 3)], (x, y - 1), (x, y + 3)],
             # 3 in a diagonal row, given soldier front (right)
-            [[(x - 1, y - d), (x - 2, y - 2 * d)], [(x + 2, y + 2 * d), (x + 3, y + 3 * d)], (x + d, y + d), (x - 3, y - 3 * d)],
-            # 3 in a diagonal row, given soldier back (right)
-            [[(x + 1, y + d), (x + 2, y + 2 * d)], [(x - 2, y - 2 * d), (x - 3, y - 3 * d)], (x - d, y - d), (x + 3, y + 3 * d)],
+            [[(x - 1, y - 1), (x - 2, y - 2)], [(x + 2, y + 2), (x + 3, y + 3)], (x + 1, y + 1), (x - 3, y - 3)],
+            # 3 in a diagonal row bottom-left to top-right
+            [[(x + 1, y + 1), (x + 2, y + 2)], [(x - 2, y - 2), (x - 3, y - 3)], (x - 1, y - 1), (x + 3, y + 3)],
             # 3 in a diagonal row, given soldier back (left)
-            [[(x - 1, y + d), (x - 2, y + 2 * d)], [(x + 2, y - 2 * d), (x + 3, y - 3 * d)], (x + d, y - d), (x - 3, y + 3 * d)],
+            [[(x - 1, y + 1), (x - 2, y + 2)], [(x + 2, y - 2), (x + 3, y - 3)], (x + 1, y - 1), (x - 3, y + 3 )],
             # 3 in a diagonal row, given soldier front (left)
-            [[(x + 1, y - d), (x + 2, y - 2 * d)], [(x - 2, y + 2 * d), (x - 3, y + 3 * d)], (x - d, y + d), (x + 3, y - 3 * d)]
+            [[(x + 1, y - 1), (x + 2, y - 2)], [(x - 2, y + 2), (x - 3, y + 3)], (x - 1, y + 1), (x + 3, y - 3)]
         ]
 
         for structure, shots, free, slide in cannon_cases:
