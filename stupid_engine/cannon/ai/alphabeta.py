@@ -93,7 +93,7 @@ class AlphaBeta(BaseAI):
                 
             # add statistics
             self._moves_searched += 1
-            self._depth_per_search.append(self._depth + extra_depth -1)
+            self._depth_per_search.append(self._depth + extra_depth -2)
 
             if VERBOSE:
                 # the ply self._depth + extra_depth -1 contains the best_move the player will take
@@ -239,13 +239,31 @@ class AlphaBeta(BaseAI):
         return best_score, best_move
     
     def _quiesce(self, alpha: int, beta: int, player: Player) -> int:
+        """
+        A variable depth search approach, that searches for a quiete move and then evaluates.
+        """
         moves = self._get_moves(player)
         for move in moves:
-            score = move.get_value()
-            if not score:
-                score = self._eval(player, move)
-                move.set_value(score)
-        
+            # if the move is a finishing one, then defenitly use this one!
+            if move.is_finish_move():
+                return math.inf
+            
+            # if the move is quiet, the evaluate it
+            if not move.is_kill_move():
+                # get the scores value, or evaluate it
+                score = move.get_value()
+                if not score:
+                    score = self._eval(player, move)
+                    move.set_value(score)
+                
+                return score
+
+            # search deeper if the move was not quiete
+            self._cannon.execute(player, move, testing_only=True)
+            enemy = self._cannon._get_enemy_player(player)
+            score = -self._quiesce(-alpha, -beta, enemy)
+            self._cannon.undo(player, move)
+                        
             if score >= beta:
                 return beta
             if alpha < score:
