@@ -39,9 +39,10 @@ light = lambda p, c: AlphaBeta(
     beta=math.inf, 
     depth=2, 
     time_limit=4, 
-    weights=[0, 1, 5, 2, 2, 3, 1, 0], # [1, 2, 100, 5, 6, 25, 1, 0] 
+    weights=[1, 1, 5, 2, 2, 3, 1, 0], # [1, 2, 100, 5, 6, 25, 1, 0] 
     refresh_tt=True,
     always_sort=True)
+    
 dark = lambda p, c: AlphaBeta(
     player=p, 
     cannon=c, 
@@ -53,7 +54,7 @@ dark = lambda p, c: AlphaBeta(
     refresh_tt=True,
     always_sort=True)
 
-app.set_player(PlayerType.LIGHT, light) # plys: 8.22 # winner
+app.set_player(PlayerType.LIGHT, Human) # plys: 8.22 # winner
 app.set_player(PlayerType.DARK, dark) # plys: 7.98
 
 # without search window: 6.1-6.2 plys. 9 plys in the end.
