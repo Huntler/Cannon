@@ -121,7 +121,7 @@ class AlphaBeta(BaseAI):
             if self._refresh_tt:
                 self._tt = dict()
         
-        # pstats.Stats(pr).sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
+        pstats.Stats(pr).sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
         return True
 
     def set_town_position(self, positions: List[Move]) -> Move:

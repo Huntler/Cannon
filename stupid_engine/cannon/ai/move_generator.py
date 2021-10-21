@@ -92,9 +92,9 @@ class MoveGenerator:
         cannon_cases = [
 
             # orthogonal row, given soldier front
-            [[(x, y), (x, y - 2)], [(x, y + 2), (x, y + 3)], (x, y + 1), (x, y - 3)],
+            [[(x, y - 1), (x, y - 2)], [(x, y + 2), (x, y + 3)], (x, y + 1), (x, y - 3)],
             # 3 in a orthogonal row, given soldier back
-            [[(x, y), (x, y + 2)], [(x, y - 2), (x, y - 3)], (x, y - 1), (x, y + 3)],
+            [[(x, y - 1), (x, y + 2)], [(x, y - 2), (x, y - 3)], (x, y - 1), (x, y + 3)],
 
             # 3 in a diagonal row, given soldier front (right)
             [[(x - 1, y - 1), (x - 2, y - 2)], [(x + 2, y + 2), (x + 3, y + 3)], (x + 1, y + 1), (x - 3, y - 3)],

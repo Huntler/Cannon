@@ -85,6 +85,9 @@ class CannonGame:
         if move.is_retreat_move():
             value += weights[4]
         
+        if move.is_sliding_move():
+            value += 1
+        
         # check if the move adds a soldier to the defense wall
         # .....
         # .sss.
@@ -112,9 +115,10 @@ class CannonGame:
             value += (10 - enemy_town_distance) * weights[0]
 
             # the move that results in a closer distance to the enmies town should be rewarded as well
+            # but reatreating or sliding backwards should not be punished!
             origin_x, origin_y = move.get_original_pos()
             delta_enemy_town_distance = math.sqrt(enemy_town_distance_func(origin_x, origin_y))
-            delta_enemy_town_distance = enemy_town_distance - round(delta_enemy_town_distance)
+            delta_enemy_town_distance = max(round(delta_enemy_town_distance) - enemy_town_distance, 0)
             value += delta_enemy_town_distance * weights[1]
 
         # more soldiers is better 
