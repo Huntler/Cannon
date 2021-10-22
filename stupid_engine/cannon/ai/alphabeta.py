@@ -66,63 +66,62 @@ class AlphaBeta(BaseAI):
         # if less soldiers are available, then the algorithm can search deeper
         # also it is clever to switch the focus by changing the evaluation function's weights
 
-        with cProfile.Profile() as pr:
-            # remember the start time for iterative deepening
-            self._time_start = time.time()
+        # remember the start time for iterative deepening
+        self._time_start = time.time()
+        time_exceeded = time.time() - self._time_start > self._time_limit
+        extra_depth = 0
+        delta_depth = 2
+        best_move = move = None
+        while not time_exceeded:
+            # safe the best move found so far and ingore the "best move" found on the current ply
+            # this ply could be interrupted cause the time has exceeded
+            best_move = move
+            score, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player)
+
+            # search deeper if the time has not exceeded yet
+            # increasing depth by two, to avoid the odd/even affect
+            extra_depth += delta_depth
             time_exceeded = time.time() - self._time_start > self._time_limit
-            extra_depth = 0
-            best_move = move = None
-            while not time_exceeded:
-                # safe the best move found so far and ingore the "best move" found on the current ply
-                # this ply could be interrupted cause the time has exceeded
+
+            if move and move.is_finish_move():
                 best_move = move
-                score, move = self._algorithm(self._alpha, self._beta, self._depth + extra_depth, self._player)
+                break
 
-                # search deeper if the time has not exceeded yet
-                # increasing depth by two, to avoid the odd/even affect
-                extra_depth += 2
-                time_exceeded = time.time() - self._time_start > self._time_limit
+        # if the best move is still none, then take the found move even it could be not the best
+        # but this is still better than nothing
+        if not best_move:
+            best_move = move
+            
+        # add statistics
+        self._moves_searched += 1
+        self._depth_per_search.append(self._depth + extra_depth - delta_depth)
 
-                if move and move.is_finish_move():
-                    best_move = move
-                    break
+        if VERBOSE:
+            # the ply self._depth + extra_depth -1 contains the best_move the player will take
+            # -1 because we interrupt the search if the time exceeds
+            print()
+            print(self._player.get_type().upper())
+            print(f"\tThe player has searched {self._moves_searched} move so far")
+            print(f"\tThe average search depth was {self._mean_depth()} plys")
+            diff = self._depth_per_search[0] if self._moves_searched == 1 else self._depth_per_search[-1] - self._depth_per_search[-2]
+            print(f"\tThe player searched {self._depth + extra_depth - delta_depth} plys, {diff} plys deeper than before")
+            print(f"\tThe move's score is {score}")
 
-            # if the best move is still none, then take the found move even it could be not the best
-            # but this is still better than nothing
-            if not best_move:
-                best_move = move
-                
-            # add statistics
-            self._moves_searched += 1
-            self._depth_per_search.append(self._depth + extra_depth -2)
+        if not best_move:
+            enemy = self._cannon._get_enemy_player(self._player)
+            moves = self._moves_generator.generate_moves(self._player, enemy)
+            if len(moves) == 0:
+                self._cannon.end_game(enemy.get_type())
+                return False
+            
+            best_move = moves[0]
 
-            if VERBOSE:
-                # the ply self._depth + extra_depth -1 contains the best_move the player will take
-                # -1 because we interrupt the search if the time exceeds
-                print()
-                print(self._player.get_type().upper())
-                print(f"\tThe player has searched {self._moves_searched} move so far")
-                print(f"\tThe average search depth was {self._mean_depth()} plys")
-                diff = self._depth_per_search[0] if self._moves_searched == 1 else self._depth_per_search[-1] - self._depth_per_search[-2]
-                print(f"\tThe player searched {self._depth + extra_depth -2} plys, {diff} plys deeper than before")
-                print(f"\tThe move's score is {score}")
+        self._cannon.execute(self._player, best_move)
 
-            if not best_move:
-                enemy = self._cannon._get_enemy_player(self._player)
-                moves = self._moves_generator.generate_moves(self._player, enemy)
-                if len(moves) == 0:
-                    self._cannon.end_game(enemy.get_type())
-                    return False
-                
-                best_move = moves[0]
-
-            self._cannon.execute(self._player, best_move)
-
-            # clean up the transposition table
-            if self._refresh_tt:
-                self._tt = dict()
+        # clean up the transposition table
+        if self._refresh_tt:
+            self._tt = dict()
         
-        # pstats.Stats(pr).sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
         return True
 
     def set_town_position(self, positions: List[Move]) -> Move:
@@ -199,7 +198,7 @@ class AlphaBeta(BaseAI):
             # if there is a fnishing move, do a hard break
             # and force the AI to play into this direction
             if move.is_finish_move():
-                best_score = math.inf # move.get_score
+                best_score = 100_000 # move.get_score
                 if not best_score:
                     score = self._eval(player, move)
                     move.set_value(score)
@@ -247,7 +246,8 @@ class AlphaBeta(BaseAI):
         for move in moves:
             # if the move is a finishing one, then defenitly use this one!
             if move.is_finish_move():
-                return math.inf
+                # score = -100_000 if player.get_type() != self._player.get_type() else 100_000
+                return 100_000
             
             # if the move is quiet, the evaluate it
             if not move.is_kill_move():
@@ -257,6 +257,7 @@ class AlphaBeta(BaseAI):
                     score = self._eval(player, move)
                     move.set_value(score)
                 
+                # score = -score if player.get_type() != self._player.get_type() else score
                 return score
 
             # search deeper if the move was not quiete

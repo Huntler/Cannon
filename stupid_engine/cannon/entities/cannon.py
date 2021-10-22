@@ -73,7 +73,6 @@ class CannonGame:
         enemy = self._get_enemy_player(player)
         value_array = np.zeros_like(weights)
 
-        value = 0
         if move.is_finish_move():
             value_array[2] = 1
         
@@ -85,6 +84,8 @@ class CannonGame:
         
         if move.is_retreat_move():
             value_array[4] = 1
+
+        sliding = 1 if move.is_sliding_move() else 0
         
         # check if the move adds a soldier to the defense wall
         # .....
@@ -115,13 +116,13 @@ class CannonGame:
             # the move that results in a closer distance to the enmies town should be rewarded as well
             origin_x, origin_y = move.get_original_pos()
             delta_enemy_town_distance = math.sqrt(enemy_town_distance_func(origin_x, origin_y))
-            value_array[1] = enemy_town_distance - round(delta_enemy_town_distance)
+            value_array[1] = max(round(delta_enemy_town_distance) - enemy_town_distance, 0)
 
         # more soldiers is better 
         kill = 1 if move.is_kill_move() else 0
         value_array[6] = (player.army_size() - (enemy.army_size() - kill))
 
-        return value_array.dot(weights)
+        return value_array.dot(weights) + sliding
 
     def execute(self, player: Player, move: Move, testing_only=False) -> None:
         """

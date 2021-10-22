@@ -1,3 +1,4 @@
+from stupid_engine.cannon.ai import human
 from stupid_engine.cannon.ai.alphabeta import AlphaBeta
 from stupid_engine.cannon.ai.human import Human
 from stupid_engine.cannon.ai.random import RandomAI
@@ -10,7 +11,8 @@ import sys
 
 
 FULLSCREEN = "-f" in sys.argv
-LOAD_SAVED = "-l" in sys.argv or True
+LOAD_SAVED = "-l" in sys.argv
+TIME_LIMIT = 5
 
 
 # create and start the Cannon game application
@@ -42,18 +44,19 @@ if not LOAD_SAVED:
         alpha=-math.inf, 
         beta=math.inf, 
         depth=4, 
-        time_limit=5, 
-        weights=[0, 1, 5, 2, 2, 3, 1, 0],
+        time_limit=TIME_LIMIT, 
+        weights=[0, 1, 5, 3, 2, 3, 2, 0],
         refresh_tt=True,
         always_sort=True)
+
     dark = lambda p, c: AlphaBeta(
         player=p, 
         cannon=c, 
         alpha=-math.inf, 
         beta=math.inf, 
         depth=4, 
-        time_limit=5, 
-        weights=[1, 1, 5, 3, 2, 3, 1, 0], 
+        time_limit=TIME_LIMIT, 
+        weights=[0, 1, 5, 3, 2, 3, 2, 0], 
         refresh_tt=True,
         always_sort=True)
 

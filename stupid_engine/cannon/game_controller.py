@@ -191,3 +191,6 @@ class Application(GameController):
             self._switch_player()
             self._game.set_board_state(
                 self._cannon.get_state(), self._active.get_type())
+            
+            # save the game after each move
+            self._save_game()
