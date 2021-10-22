@@ -5,7 +5,7 @@ from stupid_engine.cannon.entities.figures import CannonFigure, CannonSoldier
 from stupid_engine.cannon.entities.player import Player, PlayerType
 from typing import Dict, List, Tuple
 import random
-import functools
+import numpy as np
 from copy import copy
 from multiprocessing import Pool
 
@@ -71,19 +71,20 @@ class CannonGame:
             - the difference of army size
         """
         enemy = self._get_enemy_player(player)
+        value_array = np.zeros_like(weights)
 
         value = 0
         if move.is_finish_move():
-            value += weights[2]
+            value_array[2] = 1
         
         if move.is_shoot():
-            value += weights[5]
+            value_array[5] = 1
         
         if move.is_kill_move():
-            value += weights[7]
+            value_array[7] = 1
         
         if move.is_retreat_move():
-            value += weights[4]
+            value_array[4] = 1
         
         # check if the move adds a soldier to the defense wall
         # .....
@@ -94,7 +95,7 @@ class CannonGame:
         d = 1 if player.get_type() == PlayerType.DARK else -1
         for denfense_pos in [(tx - 1, ty + d), (tx, ty + d), (tx + 1, ty + d), (tx - 1, ty), (tx + 1, ty)]:
             if denfense_pos == move.get_pos() or player.soldier_at(denfense_pos):
-                value += 1 * weights[3]
+                value_array[3] += 1
         
         # moving an enemy that is closer to the town should reward
         # closer to a town is more rewarded
@@ -109,19 +110,18 @@ class CannonGame:
             enemy_town_distance_func = lambda x, y: math.pow(enemy_town_x - x, 2) + math.pow(enemy_town_y - y, 2)
             enemy_town_distance = math.sqrt(enemy_town_distance_func(move_x, move_y))
             enemy_town_distance = round(enemy_town_distance)
-            value += (10 - enemy_town_distance) * weights[0]
+            value_array[0] = (10 - enemy_town_distance)
 
             # the move that results in a closer distance to the enmies town should be rewarded as well
             origin_x, origin_y = move.get_original_pos()
             delta_enemy_town_distance = math.sqrt(enemy_town_distance_func(origin_x, origin_y))
-            delta_enemy_town_distance = enemy_town_distance - round(delta_enemy_town_distance)
-            value += delta_enemy_town_distance * weights[1]
+            value_array[1] = enemy_town_distance - round(delta_enemy_town_distance)
 
         # more soldiers is better 
         kill = 1 if move.is_kill_move() else 0
-        value += (player.army_size() - (enemy.army_size() - kill)) * weights[6]
+        value_array[6] = (player.army_size() - (enemy.army_size() - kill))
 
-        return value
+        return value_array.dot(weights)
 
     def execute(self, player: Player, move: Move, testing_only=False) -> None:
         """

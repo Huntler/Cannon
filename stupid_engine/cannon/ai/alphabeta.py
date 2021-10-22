@@ -21,6 +21,7 @@ import random
 import time
 from copy import deepcopy, copy
 import cProfile, pstats
+import numpy as np
 
 
 VERBOSE = True
@@ -40,7 +41,7 @@ class AlphaBeta(BaseAI):
 
         # get the depth and weight values
         self._depth = depth
-        self._weights = weights
+        self._weights = np.asarray(weights)
         self._refresh_tt = refresh_tt
         self._always_sort = always_sort
 
