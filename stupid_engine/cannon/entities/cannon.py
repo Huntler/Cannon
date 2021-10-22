@@ -228,3 +228,7 @@ class CannonGame:
         state[PlayerType.DARK] = self._p_dark.get_state()
 
         return state
+    
+    def set_state(self, state: dict) -> None:
+        self._p_light.set_state(state[PlayerType.LIGHT])
+        self._p_dark.set_state(state[PlayerType.DARK])

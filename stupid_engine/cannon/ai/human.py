@@ -35,3 +35,12 @@ class Human(BaseAI):
             return True
         
         return False
+    
+    def to_dict(self) -> dict:
+        d = dict()
+        d["ai_type"] = "human"
+        d["p"] = self._player.get_type()
+        return d
+    
+    def from_dict(d: Dict, cannon: CannonGame):
+        return Human(d["p"], cannon)

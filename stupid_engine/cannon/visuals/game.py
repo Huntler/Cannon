@@ -14,9 +14,10 @@ class Game(Game):
     SOLDIER_CLICKED = py.event.custom_type()
     MOVE_TO_CLICKED = py.event.custom_type()
     PLACE_TOWN = py.event.custom_type()
+    SAVE_BOARD = py.event.custom_type()
 
     # register events here :)
-    EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED, PLACE_TOWN]
+    EVENTS = [SOLDIER_CLICKED, MOVE_TO_CLICKED, PLACE_TOWN, SAVE_BOARD]
 
     def __init__(self, window_size: Tuple[int, int], draw_area: Tuple[int, int] = (500, 500), theme: Theme = Theme.DEFAULT, flags: int = 0) -> None:
         super().__init__(window_size=window_size, draw_area=draw_area, frame_rate=30, flags=flags)
@@ -66,6 +67,12 @@ class Game(Game):
             if name in self._sprites.keys():
                 for sprite in self._sprites[name]:
                     sprite.draw()
+    
+    def event(self, event) -> None:
+        super().event(event)
+
+        if event.type == py.KEYDOWN and event.key == py.K_s:
+            self._callbacks[Game.SAVE_BOARD]()
     
     def set_board_state(self, board_state: Dict, active_player: PlayerType) -> None:
         """

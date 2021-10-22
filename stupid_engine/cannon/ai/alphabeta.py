@@ -271,3 +271,19 @@ class AlphaBeta(BaseAI):
                 alpha = score
         
         return alpha
+    
+    def to_dict(self) -> dict:
+        d = dict()
+        d["ai_type"] = "ab"
+        d["p"] = self._player.get_type()
+        d["a"] = self._alpha
+        d["b"] = self._beta
+        d["d"] = self._depth
+        d["t"] = self._time_limit
+        d["w"] = self._weights
+        d["r"] = self._refresh_tt
+        d["s"] = self._always_sort
+        return d
+    
+    def from_dict(d: dict, player: Player, cannon: CannonGame):
+        return AlphaBeta(player, cannon, d["a"], d["b"], d["d"], d["t"], d["w"], d["r"], d["s"])

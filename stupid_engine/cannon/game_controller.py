@@ -1,11 +1,15 @@
+from math import pi
 import stupid_engine
 from stupid_engine.backend.controller import GameController
+from stupid_engine.cannon.ai.alphabeta import AlphaBeta
+from stupid_engine.cannon.ai.human import Human
 from stupid_engine.cannon.ai.move_generator import MoveGenerator
 from stupid_engine.cannon.theme import Theme
 from typing import Tuple
 from stupid_engine.cannon.visuals.game import Game
 from stupid_engine.cannon.entities.cannon import CannonGame
 from stupid_engine.cannon.entities.player import Player, PlayerType
+import pickle
 
 
 class Application(GameController):
@@ -49,6 +53,7 @@ class Application(GameController):
         self._game.on_callback(Game.PLACE_TOWN, self._on_town_place)
         self._game.on_callback(Game.SOLDIER_CLICKED, self._on_soldier_clicked)
         self._game.on_callback(Game.MOVE_TO_CLICKED, self._on_move_clicked)
+        self._game.on_callback(Game.SAVE_BOARD, self._save_game)
 
         # handle game finished
         self._cannon.set_on_finish(self._game_finished)
@@ -63,6 +68,43 @@ class Application(GameController):
         else:
             self._p_dark.set_controller(ai(self._p_dark, self._cannon))
     
+    def load_game(self) -> None:
+        with open("savegame.se", "rb") as f:
+            state = pickle.load(f)
+
+        self._cannon.set_state(state["game_state"])
+        
+        if state["active_player"] == PlayerType.LIGHT:
+            self._active = self._p_light
+        else:
+            self._active = self._p_dark
+        
+        if state["ai_light"]["ai_type"] == "ab":
+            self._p_light.set_controller(AlphaBeta.from_dict(state["ai_light"], self._p_light, self._cannon))
+        else:
+            self._p_light.set_controller(Human(self._p_light, self._cannon))
+
+        if state["ai_dark"]["ai_type"] == "ab":
+            self._p_dark.set_controller(AlphaBeta.from_dict(state["ai_dark"], self._p_dark, self._cannon))
+        else:
+            self._p_dark.set_controller(Human(self._p_dark, self._cannon))
+        
+        self._game.set_board_state(board_state=state["game_state"], active_player=self._active.get_type())
+        
+    
+    def _save_game(self) -> None:
+        state = dict()
+        state["game_state"] = self._cannon.get_state()
+
+        state["active_player"] = self._active.get_type()
+        state["ai_light"] = self._p_light.get_controller().to_dict()
+        state["ai_dark"] = self._p_dark.get_controller().to_dict()
+
+        with open("savegame.se", "wb") as f:
+            pickle.dump(state, f, pickle.HIGHEST_PROTOCOL)
+
+        print("Game saved!")
+
     def _game_finished(self, player_type: PlayerType) -> None:
         """
         This method should be executed if the game ends. The winner is defined by 

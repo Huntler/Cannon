@@ -78,12 +78,22 @@ class Player:
         This method returns all Soliders and the Town.
         """
         return self._soldiers, self._town
+    
+    def set_state(self, state) -> None:
+        self._soldiers, self._town = state
+
 
     def set_controller(self, ai) -> None:
         """
         This method sets the ai which controlls this player and makes choices.
         """
         self._ai = ai
+    
+    def get_controller(self):
+        """
+        This method simply returns the AI controlling this player.
+        """
+        return self._ai
 
     def play_turn(self, state: Dict) -> bool:
         """

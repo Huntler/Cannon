@@ -6,8 +6,11 @@ from stupid_engine.cannon.entities.player import PlayerType
 from stupid_engine.cannon.game_controller import Application
 import pygame as py
 import math
+import sys
 
-FULLSCREEN = False
+
+FULLSCREEN = "-f" in sys.argv
+LOAD_SAVED = "-l" in sys.argv or True
 
 
 # create and start the Cannon game application
@@ -22,38 +25,42 @@ if FULLSCREEN:
 else:
     app = Application(window_size=windowed_size, theme=Theme.DEFAULT, flags=windowed_flags)
 
-# weights are defined by the following features
-# 0 distance of soldier to enemy town
-# 1 delta distance of soldier to enemy town
-# 2 captur enemy town
-# 3 defense wall infront of own town
-# 4 retreat if threatened
-# 5 shoot at something
-# 6 difference in army size
-# 7 kill a soldier
+if not LOAD_SAVED:
+    # weights are defined by the following features
+    # 0 distance of soldier to enemy town
+    # 1 delta distance of soldier to enemy town
+    # 2 captur enemy town
+    # 3 defense wall infront of own town
+    # 4 retreat if threatened
+    # 5 shoot at something
+    # 6 difference in army size
+    # 7 kill a soldier
 
-light = lambda p, c: AlphaBeta(
-    player=p, 
-    cannon=c, 
-    alpha=-math.inf, 
-    beta=math.inf, 
-    depth=4, 
-    time_limit=5, 
-    weights=[0, 1, 5, 2, 2, 3, 1, 0],
-    refresh_tt=True,
-    always_sort=True)
-dark = lambda p, c: AlphaBeta(
-    player=p, 
-    cannon=c, 
-    alpha=-math.inf, 
-    beta=math.inf, 
-    depth=4, 
-    time_limit=5, 
-    weights=[1, 1, 5, 3, 2, 3, 1, 0], 
-    refresh_tt=True,
-    always_sort=True)
+    light = lambda p, c: AlphaBeta(
+        player=p, 
+        cannon=c, 
+        alpha=-math.inf, 
+        beta=math.inf, 
+        depth=4, 
+        time_limit=5, 
+        weights=[0, 1, 5, 2, 2, 3, 1, 0],
+        refresh_tt=True,
+        always_sort=True)
+    dark = lambda p, c: AlphaBeta(
+        player=p, 
+        cannon=c, 
+        alpha=-math.inf, 
+        beta=math.inf, 
+        depth=4, 
+        time_limit=5, 
+        weights=[1, 1, 5, 3, 2, 3, 1, 0], 
+        refresh_tt=True,
+        always_sort=True)
 
-app.set_player(PlayerType.LIGHT, light)
-app.set_player(PlayerType.DARK, dark)
+    app.set_player(PlayerType.LIGHT, light)
+    app.set_player(PlayerType.DARK, Human)
+
+else:
+    app.load_game()
 
 app.start_game()

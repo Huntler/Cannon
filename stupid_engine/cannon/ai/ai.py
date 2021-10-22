@@ -15,3 +15,9 @@ class BaseAI:
 
     def play_turn(self, state: Dict) -> bool:
         raise NotImplemented
+    
+    def to_dict(self) -> dict:
+        raise NotImplemented
+    
+    def from_dict(d: Dict, cannon: CannonGame):
+        raise NotImplemented
