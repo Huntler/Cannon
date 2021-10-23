@@ -37,10 +37,19 @@ class Human(BaseAI):
         return False
     
     def to_dict(self) -> dict:
+        """
+        This method is used to transform the most valuable information 
+        into a dictonary which can be written to disk later on. This is 
+        useful, if the game should be safed and restored.
+        """
         d = dict()
         d["ai_type"] = "human"
         d["p"] = self._player.get_type()
         return d
     
     def from_dict(d: Dict, cannon: CannonGame):
+        """
+        This creates the Human AI object which can be configured in order 
+        to use manual inputs.
+        """
         return Human(d["p"], cannon)

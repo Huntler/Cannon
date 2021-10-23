@@ -1,9 +1,6 @@
-from stupid_engine.cannon.entities.figures import CannonSoldier
 from stupid_engine.cannon.entities.move import Move
-from stupid_engine.cannon.entities.player import Player, PlayerType
+from stupid_engine.cannon.entities.player import PlayerType
 from typing import List
-from copy import copy
-import functools
 
 
 class MoveGenerator:
@@ -11,11 +8,20 @@ class MoveGenerator:
         self._moves = []
 
     def generate_moves(self, player, enemy, soldier=None) -> List[Move]:
+        """
+        This method generates all moves for the given player and for all soldiers 
+        obtained by the player. If a soldier was explicitly given, then only the 
+        moves for this player are generated. This is useful, if a human clicked 
+        on one solider and wants the move of this piece shown on screen.
+        """
         self.refresh()
+
+        # if a soldier was given, only return its moves
         if soldier:
             self._generate_moves(player, enemy, soldier, False)
             return self._moves
 
+        # if no soldier was given, then generate all moves available
         for soldier in player.get_soldiers().values():
             self._generate_moves(player, enemy, soldier)
 
