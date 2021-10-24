@@ -1,6 +1,8 @@
 from math import pi
+from time import time
 import stupid_engine
 from stupid_engine.backend.controller import GameController
+from stupid_engine.backend.misc.stats import Statistics
 from stupid_engine.cannon.ai.alphabeta import AlphaBeta
 from stupid_engine.cannon.ai.human import Human
 from stupid_engine.cannon.ai.move_generator import MoveGenerator
@@ -111,7 +113,22 @@ class Application(GameController):
         the player type and given as a parameter.
         """
         self._game.show_winner(player_type)
-        quit()
+
+        l = self._p_light.get_controller().statistics_get()
+        d = self._p_dark.get_controller().statistics_get()
+
+        data_l = ["light", l[Statistics.TOTAL_SCORE_NORMALIZED], l[Statistics.AVERAGE_PLYS], 
+                l[Statistics.AVERAGE_TIME_PER_PLY],l[Statistics.AVERAGE_PRUNING], 
+                l[Statistics.AVERAGE_SUBROOT_PRUNING], 1 if player_type == PlayerType.LIGHT else 0]
+        data_d = ["dark", d[Statistics.TOTAL_SCORE_NORMALIZED], d[Statistics.AVERAGE_PLYS],
+                d[Statistics.AVERAGE_TIME_PER_PLY], d[Statistics.AVERAGE_PRUNING], 
+                d[Statistics.AVERAGE_SUBROOT_PRUNING], 1 if player_type == PlayerType.DARK else 0]
+
+        with open(f"game_{time()}.csv", "w") as f:
+            s = ",".join(str(x) for x in data_l) + "\n" + ",".join(str(x) for x in data_d)
+            f.write(s)
+
+        self.stop()
 
     def _switch_player(self) -> None:
         """
@@ -191,6 +208,3 @@ class Application(GameController):
             self._switch_player()
             self._game.set_board_state(
                 self._cannon.get_state(), self._active.get_type())
-            
-            # save the game after each move
-            self._save_game()

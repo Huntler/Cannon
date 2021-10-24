@@ -9,23 +9,27 @@ import pygame as py
 import math
 import sys
 
-
+THEME = Theme.APPLE
 FULLSCREEN = "-f" in sys.argv
 LOAD_SAVED = "-l" in sys.argv
 TIME_LIMIT = 5
+TT = True
+DEPTH = 2
+QUIESENCE = True
+SOFT_BOUNDS = True
 
 
 # create and start the Cannon game application
-fullscreen_size = (2560, 1600)
+fullscreen_size = (1920, 1080)
 fullscreen_flags = py.FULLSCREEN | py.HWSURFACE | py.DOUBLEBUF
 
 windowed_size = (700, 700)
 windowed_flags = py.SCALED
 
 if FULLSCREEN:
-    app = Application(window_size=fullscreen_size, theme=Theme.DEFAULT, flags=fullscreen_flags)
+    app = Application(window_size=fullscreen_size, theme=THEME, flags=fullscreen_flags)
 else:
-    app = Application(window_size=windowed_size, theme=Theme.DEFAULT, flags=windowed_flags)
+    app = Application(window_size=windowed_size, theme=THEME, flags=windowed_flags)
 
 if not LOAD_SAVED:
     # weights are defined by the following features
@@ -43,27 +47,33 @@ if not LOAD_SAVED:
         cannon=c, 
         alpha=-math.inf, 
         beta=math.inf, 
-        depth=4, 
+        depth=DEPTH, 
         time_limit=TIME_LIMIT, 
-        weights=[0, 1, 5, 3, 2, 3, 2, 0],
-        refresh_tt=True,
-        always_sort=True)
+        weights=[1, 1, 5, 3, 2, 3, 2, 0],
+        use_tt=TT,
+        always_sort=True,
+        quiesence=QUIESENCE,
+        soft_bounds=SOFT_BOUNDS)
 
     dark = lambda p, c: AlphaBeta(
         player=p, 
         cannon=c, 
         alpha=-math.inf, 
         beta=math.inf, 
-        depth=4, 
+        depth=DEPTH, 
         time_limit=TIME_LIMIT, 
-        weights=[0, 1, 5, 3, 2, 3, 2, 0], 
-        refresh_tt=True,
-        always_sort=True)
+        weights=[1, 1, 5, 3, 2, 1, 1, 0], 
+        use_tt=True,
+        always_sort=True,
+        quiesence=True,
+        soft_bounds=True)
 
     app.set_player(PlayerType.LIGHT, light)
-    app.set_player(PlayerType.DARK, Human)
+    app.set_player(PlayerType.DARK, dark)
 
 else:
     app.load_game()
 
 app.start_game()
+
+print("Program exit.")

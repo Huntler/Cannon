@@ -10,7 +10,7 @@ from stupid_engine.backend.visuals.figure import Figure
 
 class Theme:
     DEFAULT = 0
-    STAR_WARS = 1
+    APPLE = 1
 
     def __init__(self, theme: int, window_size: Tuple[int, int], draw_size: Tuple[int, int], screen) -> None:
         """
@@ -26,13 +26,8 @@ class Theme:
 
         self._scaling = int(draw_size[0] / (10 + 20))
 
-        if theme == Theme.DEFAULT:
-            self.font = Font.ARIAL
-            self.font_size = 24
-
-        if theme == Theme.STAR_WARS:
-            self.font = Font.STAR_WARS
-            self.font_size = 24
+        self.font = Font.ARIAL
+        self.font_size = 24
 
     def get_scaling(self) -> int:
         return self._scaling
@@ -43,11 +38,11 @@ class Theme:
         """
         board = Board(self._screen, self._window_size, self._draw_size, 10, self.font, self.font_size)
 
-        if self._theme == Theme.STAR_WARS:
-            bc = (30, 22, 79)
-            fc = (173, 193, 194)
-            lc = (30, 22, 79)
-            tc = (173, 193, 194)
+        if self._theme == Theme.APPLE:
+            bc = (24, 24, 24)
+            fc = (40, 40, 40)
+            lc = (24, 24, 24)
+            tc = (222, 222, 222)
             board.set_color(bc, fc, lc, tc)
 
         self._draw_area = board.get_draw_area()
@@ -69,20 +64,15 @@ class Theme:
             else:
                 color = (100, 150, 0)
 
-            figure = lambda **kwargs: Figure(**kwargs, surface=self._screen, draw_area=self._draw_area, scaling=self._scaling, color=color)
-            return figure
-
-        # load the star wars theme
-        if self._theme == Theme.STAR_WARS:
-            soldier_path = None
+        if self._theme == Theme.APPLE:
+            color = None
             if type == PlayerType.LIGHT:
-                soldier_path = "stupid_engine/resources/star_wars/clone_75x75_01.png"
+                color = (106, 228, 251)
             else:
-                soldier_path = "stupid_engine/resources/star_wars/droid_75x75_01.png"
+                color = (234, 51, 240)
 
-            figure = lambda **kwargs: Image(**kwargs, surface=self._screen, draw_area=self._draw_area, 
-                                            img_path=soldier_path, size=(30, 30))
-            return figure
+        figure = lambda **kwargs: Figure(**kwargs, surface=self._screen, draw_area=self._draw_area, scaling=self._scaling, color=color)
+        return figure
 
     def get_town(self, type: PlayerType) -> Sprite:
         # load the default theme
@@ -93,8 +83,15 @@ class Theme:
             else:
                 color = (100, 150, 0)
 
-            figure = lambda **kwargs: Block(**kwargs, surface=self._screen, draw_area=self._draw_area, scaling=self._scaling, color=color)
-            return figure
+        if self._theme == Theme.APPLE:
+            color = None
+            if type == PlayerType.LIGHT:
+                color = (106, 228, 251)
+            else:
+                color = (234, 51, 240)
+
+        figure = lambda **kwargs: Block(**kwargs, surface=self._screen, draw_area=self._draw_area, scaling=self._scaling, color=color)
+        return figure
 
     def get_move_point(self) -> None:
         pass

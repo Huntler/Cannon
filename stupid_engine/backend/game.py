@@ -1,5 +1,3 @@
-from threading import Thread
-import time
 from typing import Tuple
 import pygame as py
 

@@ -42,7 +42,6 @@ class Game(Game):
         This method shows the winner on screen.
         """
         print(f"Player '{player_type}' has won the game.")
-        py.display.set_caption("Player '{player_type}' has won the game")
     
     def on_click(self, event_type, sprite: Sprite) -> None:
         """

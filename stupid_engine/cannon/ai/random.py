@@ -30,7 +30,7 @@ class RandomAI(BaseAI):
         is selected randomly if the moves do not contain killing or 
         finishing moves.
         """
-        soldiers, town = state[self._type]
+        soldiers, town = state[self._player.get_type()]
 
         all_moves = []
         for soldier in soldiers:

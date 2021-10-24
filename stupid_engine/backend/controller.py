@@ -49,7 +49,6 @@ class GameController(Thread):
         while self._running:
             self.loop()
         
-        self._running = False
         print("Controller has stopped.")
     
     def loop(self) -> None:
@@ -61,7 +60,7 @@ class GameController(Thread):
     
     def stop(self) -> None:
         """
-        This method gently stops the thread be ending its loop.
+        This method gently stops the thread by ending its loop.
         """
         self._running = False
 

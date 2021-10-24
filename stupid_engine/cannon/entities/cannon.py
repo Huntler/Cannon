@@ -84,8 +84,6 @@ class CannonGame:
         
         if move.is_retreat_move():
             value_array[4] = 1
-
-        sliding = 1 if move.is_sliding_move() else 0
         
         # check if the move adds a soldier to the defense wall
         # .....
@@ -122,7 +120,7 @@ class CannonGame:
         kill = 1 if move.is_kill_move() else 0
         value_array[6] = (player.army_size() - (enemy.army_size() - kill))
 
-        return value_array.dot(weights) + sliding
+        return value_array.dot(weights)
 
     def execute(self, player: Player, move: Move, testing_only=False) -> None:
         """
